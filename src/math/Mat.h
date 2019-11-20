@@ -10,9 +10,9 @@ class Mat {
 
     Mat &operator=( const Mat &other );
     bool operator==( const Mat &other ) const;
-    double &operator()(int i, int j)
+    inline double &operator()(int i, int j) {return storage[j + i*n];}
 
-    inline double &at( int i, int j ) const { return storage[j * m + i]; };
+    inline double &at( int i, int j ) const { return storage[j + i*n]; };
     inline double *get() { return storage; }
     double *       col( int j );
     inline int     dimX() const { return m; }
