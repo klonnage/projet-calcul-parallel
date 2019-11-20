@@ -8,11 +8,11 @@ class Mat {
     Mat( int m, int n, double value );
     Mat( const Mat &other );
 
-    Mat &operator=( const Mat &other );
-    bool operator==( const Mat &other ) const;
-    inline double &operator()(int i, int j) {return storage[j + i*n];}
+    Mat &          operator=( const Mat &other );
+    bool           operator==( const Mat &other ) const;
+    inline double &operator()( int i, int j ) { return storage[j + i * n]; }
 
-    inline double &at( int i, int j ) const { return storage[j + i*n]; };
+    inline double &at( int i, int j ) const { return storage[j + i * n]; };
     inline double *get() { return storage; }
     double *       col( int j );
     inline int     dimX() const { return m; }
