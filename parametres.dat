@@ -1,9 +1,8 @@
-100                     #Nx , nombre de noeuds dans la direction x
-100                     #Ny , nombre de noeuds dans la direction y
-1.0                     #Lx , longueur dans la direction x
-1.0                     #Ly , longueur dans la direction y
-1.0                     #D  , coefficient de diffusion
-0.00001                 #dt , pas de temps
-1.                      #tmax , temps final
-0.001			#eps , tolerance du grandient conjugué
-100			#kmax , nombre d'itération max du grandient conjugué
+50                       #Nx , nombre de noeuds dans la direction x
+50                        #Ny , nombre de noeuds dans la direction y
+1.0                      #Lx , longueur dans la direction x
+1.0                      #Ly , longueur dans la direction y
+1.0                      #D  , coefficient de diffusion
+0.00001                    #dt , pas de temps
+1                          #Tmax , temps final
+
