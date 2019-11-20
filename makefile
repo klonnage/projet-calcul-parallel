@@ -23,4 +23,4 @@ $(PROGRAM): $(OBJ)
 	$(FC) $(FCFLAGS) -c $<
 
 clean:
-	rm -f .o *.mod fort.
+	rm -f *.o *.mod fort. exe
