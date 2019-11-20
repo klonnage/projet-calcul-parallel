@@ -4,4 +4,5 @@
 1.0                      #Ly , longueur dans la direction y
 1.0                      #D  , coefficient de diffusion
 0.00001                    #dt , pas de temps
-1                          #Tmax , temps final
+1                        #Tmax , temps final
+
