@@ -60,7 +60,7 @@ Mat &Mat::operator=( const Mat &other )
     return *this;
 }
 
-bool Mat::operator==( const Mat &other )
+bool Mat::operator==( const Mat &other ) const
 {
     return m == other.m && n == other.n &&
            ( memcmp( storage,
@@ -79,7 +79,7 @@ double *Mat::initStorage( int size )
     }
 }
 
-void Mat::print( int precision /*= 6*/ )
+void Mat::print( int precision /*= 6*/ ) const
 {
     int     m = dimX();
     int     n = dimY();
