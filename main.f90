@@ -12,7 +12,7 @@ Program Main
   real(PR), dimension(:), allocatable :: U, F, U0
   real(PR), dimension(:,:), allocatable :: fsource, g, h, U_Mat
   integer :: Nx, Ny, N, nbNN, k, i, imax
-  real(PR) :: dx, dy, D, Lx, Ly, beta, dt, tmax
+  real(PR) :: dx, dy, D, Lx, Ly, beta, dt, tmax, t0, t1
 
 call lect_para(Nx, Ny, Lx, Ly, D, dt, tmax)
 
@@ -32,25 +32,43 @@ call lect_para(Nx, Ny, Lx, Ly, D, dt, tmax)
   k = 100
 
   !Initialisation : 
-  U = 0.
+  U = 2.
   U0 = 2.! solution initiale 
 
   !génération de la matrice pentadiagonale
   call Mat(Nx,Ny,dx,dy,D,AA,JA,IA,dt)
 
   !conditions aux bords
-  call fper(Lx,Ly,Nx,Ny,fsource)
-  call fper(Lx,Ly,Nx,Ny,g)
-  call fper(Lx,Ly,Nx,Ny,h)
+  ! stationnaire
+!!$  fsource = fsta(Lx,Ly,Nx,Ny)
+!!$  g = gsta(Lx,Ly,Nx,Ny)
+!!$  h = hsta(Lx,Ly,Nx,Ny)
+  ! periodique
+!!$  call fper(Lx,Ly,Nx,Ny,fsource)
+!!$  g = gper(Lx,Ly,Nx,Ny)
+!!$  h = hper(Lx,Ly,Nx,Ny)
+  ! instationnaire periodique
+  !fsource = finstaper(Lx,Ly,Nx,Ny,0.)
+  g = ginstaper(Lx,Ly,Nx,Ny)
+  h = hinstaper(Lx,Ly,Nx,Ny)
+
+
+
 
   ! génération du termes source, conditions aux bords + fsource
   call secondMembre(F,Nx,Ny,dx,dy,D,fsource,g,h)
 
+  call cpu_time(t0)
+
   ! résolution du système AU = dt*F+U0, pour chaque pas de temps 
   do i = 1,imax
+     fsource = finstaper(Lx,Ly,Nx,Ny,i*dt)
      call GC_SPARSE(AA,IA,JA,dt*F+U0,U0,U,beta,k,N)
      U0 = U
   end do
+
+  call cpu_time(t1)
+  print*, t1-t0, ' s'
 
   call vect_to_mat(U, U_Mat, Nx, Ny)
 
@@ -63,9 +81,9 @@ call lect_para(Nx, Ny, Lx, Ly, D, dt, tmax)
   end do
 
   call WriteBinary(x, y, U_Mat, "resultat.dat")
-call vect_to_mat(F, U_Mat, Nx, Ny)
+  call vect_to_mat(F, U_Mat, Nx, Ny)
   call WriteBinary(x, y, U_Mat, "test.dat")
-
+  
   deallocate(AA,IA,JA,U,F,U0, g, h, U_Mat,x, y)
 
 Contains
