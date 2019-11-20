@@ -9,14 +9,16 @@
         Mat( const Mat &other );
 
         Mat &operator=( const Mat &other );
-        bool operator==( const Mat &other );
+        bool operator==( const Mat &other ) const;
 
-        inline double &at( int i, int j ) const { return storage[j * m + i]; };
+        inline double &operator()(int i, int j) { return storage[j + i*n]; }
+
+        inline double &at( int i, int j ) const { return storage[j + i*n]; }
         inline double *get() { return storage; }
         double* col(int j);
-        inline int     dimX() { return m; }
-        inline int     dimY() { return n; }
-        void print(int precision = 6);
+        inline int     dimX() const { return m; }
+        inline int     dimY() const { return n; }
+        void print(int precision = 6) const;
 
       private:
         double *storage;
