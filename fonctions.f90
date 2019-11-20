@@ -1,8 +1,8 @@
-Module fonction
+Module fonctions
+
+  !use mod_lecture
 
   implicit none 
-
-  !include 'mpif.h'
 
   integer, parameter :: PR = 8
 
@@ -216,4 +216,4 @@ Contains
     end do
   end function hinstaper
 
-end Module fonction
+end Module fonctions
