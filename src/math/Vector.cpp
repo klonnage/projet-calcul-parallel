@@ -1,5 +1,5 @@
 #include "Vector.h"
-#include <mkl_cblas.h>
+#include <cblas.h>
 #include <cassert>
 #include <cstring>
 
@@ -33,7 +33,7 @@ int Vector::size() const {
 }
 
 Vector& Vector::operator=(Vector const& v) {
-    if (this -> values != NULL;) {
+    if (this -> values != nullptr) {
         delete[] this->values;
     }
     this -> N = v.N;
@@ -42,7 +42,12 @@ Vector& Vector::operator=(Vector const& v) {
     return *this;
 }
 
-Vector& Vector::operator*(double alpha) {
-    cblas_dscal(this -> N, alpha, this -> values);
+Vector& Vector::scale(double alpha) {
+    cblas_dscal(this -> N, alpha, this -> values, 1);
     return *this;
+}
+
+void axpy(double alpha, Vector const& x, Vector& y) {
+    /* Authorized as x won't be modified */
+    cblas_daxpy(x.size(), alpha, const_cast<Vector&>(x), 1, y, 1);
 }

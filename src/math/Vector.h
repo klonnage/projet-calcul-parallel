@@ -4,18 +4,25 @@ class Vector {
     double *values;
     int N;
 public:
-    Vector() : N(0), values(nullptr);
+    /* Par défaut : vecteur null */
+    Vector() : N(0), values(nullptr) {}
     Vector(int N);
+
+    /* Copies superficielles */
     Vector(Vector const& v);
+    void set(Vector const& v);
+
     ~Vector();
+    /* Copie profonde de v */
     Vector& operator=(Vector const& v);
 
-    Vector& operator*(double alpha);
     Vector& operator+=(Vector const& v);
     Vector& operator-=(Vector const& v);
 
+    Vector& scale(double alpha);
+
     double& operator[](int id);
-    double  dot()  const;
+    double  dot(Vector const& v)  const;
     double  nrm2() const;
 
     int size() const;
@@ -23,6 +30,6 @@ public:
     operator double const*() {return const_cast<double const*>(values);};
 };
 
-Vector& operator+(Vector const &u, Vector const &v);
-Vector& operator-(Vector const &u, Vector const &v);
-void axpy(double a, Vector const* x, Vector* y);
+Vector operator+(Vector const &u, Vector const &v);
+Vector operator-(Vector const &u, Vector const &v);
+void axpy(double alpha, Vector const& x, Vector& y);
