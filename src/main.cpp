@@ -6,15 +6,15 @@
 
 int main()
 {
-    setup_procs(); // répartir les données entre les procs, MPI
+    setup_procs(); // rï¿½partir les donnï¿½es entre les procs, MPI
 
-    read_input( rowCount, colCount, (float)lX, (float)lY /*taille réelle */, (float)coeff, (float)dt, (float)tmax );
+    read_input( rowCount, colCount, (float)lX, (float)lY /*taille rï¿½elle */, (float)coeff, (float)dt, (float)tmax );
 
     rank = MPI_COMM_RANK;
     np   = MPI_COMM_SIZE
 
-        // paramètres globaux
-        float beta; // précision
+        // paramï¿½tres globaux
+    float beta; // prï¿½cision
     int       kmax;
     float     dX = lX / colCount, dY = lY / rowCount;
     int       imax = tmax / dt;
@@ -24,18 +24,22 @@ int main()
                      np,
                      rank,
                      &iBegin,
-                     &iEnd ); // retourne l'indice de la ligne de début et de celle de fin pour chaque proc
+                     &iEnd ); // retourne l'indice de la ligne de dï¿½but et de celle de fin pour chaque proc
+
+    if(rank != 0){   // toujours avoir une ligne en commun pour tester schwarz
+      iBegin = iBegin -1;
+    }
 
     int nbLigne = iEnd - iBegin + 1;
     int nbElts  = nbLignes * colCount;
 
     float a, b, c;                                  // les trois valeurs de la matrice penta-diagonale du pdf
-    Mat   A = FillA( nbLignes, colCount, a, b, c ); // Sparse !!! CONST CONST 
+    Mat   A = FillA( nbLignes, colCount, a, b, c ); // Sparse !!! CONST CONST
 
     Vec U( nbElts ), Uprev( nbElts, 0. ); // Uprev = (0,..., 0)
 
-    /* g : conditions aux bords en haut et en bas (les vecteurs concernés par MPI !!!!!),
-       h : """""""""""""""""""" à gauche et à droite */
+    /* g : conditions aux bords en haut et en bas (les vecteurs concernï¿½s par MPI !!!!!),
+       h : """""""""""""""""""" ï¿½ gauche et ï¿½ droite */
     Mat g = init_g( 2, colCount ); // go fonctions.f90, fonction g
     Mat h = init_h( nbLignes, 2 ); // idem
 
@@ -48,6 +52,7 @@ int main()
     /* boucle principale */
 
     for ( int i = 0; i < imax; ++i ) {
+        
         gradient_conj( A, dt * F + Uprev, Uprev, U, beta, kmax, nbElts ); // Go pdf pour comprendre
         Uprev = U;
 
