@@ -27,6 +27,7 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
             for (i = 0; i < Ncol; ++i) {
                 gme[shift + i] = sin((double)(i) * dx) + cos_border;
             }
+
         }
         break;
     case 2:

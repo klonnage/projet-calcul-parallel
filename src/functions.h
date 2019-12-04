@@ -3,4 +3,5 @@
 
 void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode);
 
-void g(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode);
+
+void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode);
