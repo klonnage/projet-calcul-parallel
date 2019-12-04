@@ -13,7 +13,7 @@ Mat fsta( double Lx, double Ly, int Nx, int Ny )
         for ( size_t j = 0; j < Ny; ++j ) {
             double x       = static_cast<double>( i ) * dx;
             double y       = static_cast<double>( j ) * dy;
-            result( i, j ) = 2*( x - x * x + y - y * y );
+            result( i, j ) = 2 * ( x - x * x + y - y * y );
         }
     }
 
@@ -47,3 +47,26 @@ Mat fper( double Lx, double Ly, int Nx, int Ny )
 Mat gper( double Lx, double Ly, int Nx, int Ny ) {}
 
 Mat hper( double Lx, double Ly, int Nx, int Ny ) {}
+
+void charge( int rowCount, int np, int rank /* aka "me" */, int &iBegin, int &iEnd )
+{
+    int loadSize = rowCount / np;
+    int leftover = rowCount % np;
+
+    if ( leftover == 0 ) {
+        iBegin = rank * loadSize;
+        iEnd   = iBegin + loadSize - 1;
+    }
+    else {
+        if ( rank < leftover ) {
+            iBegin = rank * ( loadSize + 1 );
+            iEnd   = iBegin + loadSize;
+        }
+        else {
+            iBegin = leftover * ( loadSize + 1 ) + ( rank - leftover ) * loadSize;
+            iEnd   = iBegin + loadSize - 1;
+        }
+    }
+}
+
+

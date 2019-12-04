@@ -20,7 +20,7 @@ int main()
     int       imax = tmax / dt;
 
     int iBegin, iEnd;
-    repartir_charge( Nli,
+    repartir_charge( rowCount,
                      np,
                      rank,
                      &iBegin,

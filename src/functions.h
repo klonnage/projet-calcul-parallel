@@ -12,3 +12,5 @@ Mat fper(double Lx, double Ly, int Nx, int Ny);
 Mat gper(double Lx, double Ly, int Nx, int Ny);
 
 Mat hper(double Lx, double Ly, int Nx, int Ny);
+
+void charge(int rowCount, int np, int rank /* aka "me" */, int& iBegin, int& iEnd);
