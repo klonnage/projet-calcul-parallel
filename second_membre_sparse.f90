@@ -13,7 +13,7 @@ Contains
     integer, dimension(:), intent(out), allocatable :: JA,IA
     Integer :: i,j,k,nbNN
 
-    nbNN = 5*(Nx*Ny) - 2*Nx - 2*Ny !! nombre d'éléments non nuls ?
+    nbNN = 5*(Nx*Ny) - 2*Nx - 2*Ny !! nombre d'éléments non nuls 
     allocate(AA(nbNN),IA(nbNN),JA(nbNN))
 
     k = 1
