@@ -11,6 +11,8 @@ public:
     /* Copies superficielles */
     Vector(Vector const& v);
     void set(Vector const& v);
+    
+    void set_value(double v);
 
     ~Vector();
     /* Copie profonde de v */

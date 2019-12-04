@@ -2,48 +2,63 @@
 
 #include <cmath>
 #include <cstddef>
+#include <mpi.h>
+#include <cstring>
 
-Mat fsta( double Lx, double Ly, int Nx, int Ny )
-{
-    double dx = Lx / static_cast<double>( Nx );
-    double dy = Ly / static_cast<double>( Ny );
-    Mat    result( Nx, Ny, 0. );
+void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
+    int i;
+    double x;
 
-    for ( size_t i = 0; i < Nx; ++i ) {
-        for ( size_t j = 0; j < Ny; ++j ) {
-            double x       = static_cast<double>( i ) * dx;
-            double y       = static_cast<double>( j ) * dy;
-            result( i, j ) = 2*( x - x * x + y - y * y );
+    int size;
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    switch (mode)
+    {
+    case 0:
+        gme.set_value(0.);
+        break;
+    case 1:
+        gme.set_value(0.);
+        if (me == 0 || me == size) {
+            /* Compute shift in gme plus constant value */
+            int bool_first = (me == 0);
+            int shift = (!bool_first) * Ncol;
+            double cos_border = (bool_first) ? 1 : cos(Ly);
+            for (i = 0; i < Ncol; ++i) {
+                gme[shift + i] = sin((double)(i) * dx) + cos_border;
+            }
         }
-    }
-
-    return result;
-}
-
-Mat gsta( double Lx, double Ly, int Nx, int Ny )
-{
-    return Mat( Nx, Ny, 0. );
-}
-
-Mat hsta( double Lx, double Ly, int Nx, int Ny )
-{
-    return Mat( Nx, Ny, 0. );
-}
-
-Mat fper( double Lx, double Ly, int Nx, int Ny )
-{
-    Mat    ret( Nx, Ny, 0.0 );
-    double dx = Lx / Nx, dy = Ly / Ny;
-
-    for ( int i = 0; i < Nx; ++i ) {
-        for ( int j = 0; j < Ny; ++j ) {
-            double x    = static_cast<double>( i ) * dx;
-            double y    = static_cast<double>( j ) * dy;
-            ret( i, j ) = std::sin( x ) + std::cos( y );
-        }
+        break;
+    case 2:
+        gme.set_value(0.);
+        break;
+    default:
+        break;
     }
 }
 
-Mat gper( double Lx, double Ly, int Nx, int Ny ) {}
+void g(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
+    int i;
+    double y;
 
-Mat hper( double Lx, double Ly, int Nx, int Ny ) {}
+    switch (mode)
+    {
+    case 0:
+        hme.set_value(0.);
+        break;
+    case 1:
+        y = (double)(i - i1 + 1)*dy;
+        for (i = 0; i < Nlime; ++i) {
+            hme[Nlime + i] = cos(y) + sin(Ly);
+        }
+        for (i = 0; i < Nlime; ++i) {
+            hme[i]         = cos(y);
+        }
+        break;
+    case 2:
+        hme.set_value(1.);
+        break;
+    default:
+        break;
+    }
+}

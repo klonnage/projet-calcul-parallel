@@ -1,14 +1,6 @@
 #pragma once
-#include "math/Mat.h"
+#include "math/Vector.h"
 
-Mat fsta(double Lx, double Ly, int Nx, int Ny);
+void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode);
 
-Mat gsta(double Lx, double Ly, int Nx, int Ny);
-
-Mat hsta(double Lx, double Ly, int Nx, int Ny);
-
-Mat fper(double Lx, double Ly, int Nx, int Ny);
-
-Mat gper(double Lx, double Ly, int Nx, int Ny);
-
-Mat hper(double Lx, double Ly, int Nx, int Ny);
+void g(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode);
