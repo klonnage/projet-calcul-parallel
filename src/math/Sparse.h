@@ -3,10 +3,10 @@
 
 class Sparse {
     double alpha, beta, gamma;
-    double Nx, Lx;
+    double N;
 public:
     Sparse () = delete;
-    Sparse (double Nx, double Lx);
+    Sparse (double N, double alpha, double beta, double gamma);
     ~Sparse();
 
     Vector operator*(Vector const& v) const;

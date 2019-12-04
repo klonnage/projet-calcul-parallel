@@ -1,6 +1,7 @@
 #include "functions.h"
 
 #include <cmath>
+#include <cstddef>
 
 Mat fsta( double Lx, double Ly, int Nx, int Ny )
 {
@@ -12,7 +13,7 @@ Mat fsta( double Lx, double Ly, int Nx, int Ny )
         for ( size_t j = 0; j < Ny; ++j ) {
             double x       = static_cast<double>( i ) * dx;
             double y       = static_cast<double>( j ) * dy;
-            result( i, j ) = ( x - x * x + y - y * y );
+            result( i, j ) = 2*( x - x * x + y - y * y );
         }
     }
 
