@@ -1,5 +1,5 @@
 Program Main
-  
+
   Use fonctions
   Use second_membre_sparse
   Use syslin
@@ -11,158 +11,130 @@ Program Main
   integer :: statinfo
   Integer, Dimension(MPI_STATUS_SIZE) :: status
 
-  Real(PR), Dimension(:), Allocatable :: AA, x, y, AAme
-  Integer, Dimension(:), Allocatable :: IA, JA, tab_i1, tab_iN, IAme, JAme
-  Real(PR), Dimension(:), Allocatable :: Ume, F, U0me, S, Fme, b, U, U0
-  Real(PR), Dimension(:,:), Allocatable :: fsource, g, h, U_Mat
-  Integer :: Nx, Ny, N, nbNN, kmax, i, imax, me, i1, iN, Np, Nme, NbLiMe, NbColMe, NbLiAv, NbLiArr
-  Real(PR) :: dx, dy, D, Lx, Ly, eps, dt, tmax
-  
+  Real(PR), Dimension(:), Allocatable :: AAme, x, y
+  Integer, Dimension(:), Allocatable :: IAme, JAme
+  Real(PR), Dimension(:), Allocatable :: Ume, U0me, Fme,
+  Real(PR), Dimension(:,:), Allocatable :: fsourceme, gme, hme
+  Integer :: Nli, Ncol, N, nbNN, kmax, i, imax, me, i1, iN, Np, Nlime
+  Real(PR) :: dx, dy, D, Lx, Ly, dt, tmax, beta
+
+
   call MPI_INIT(statinfo)
-  if (statinfo<0) then
+  if (statinfo < 0) then
      write (*,*) 'Error in MPI_INIT'
      STOP
   end if
-  
+
   call MPI_COMM_SIZE(MPI_COMM_WORLD, Np, statinfo)
   call MPI_COMM_RANK(MPI_COMM_WORLD, Me, statinfo)
 
-  Call lect_para(Nx, Ny, Lx, Ly, D, dt, tmax)
+  Call lect_para(Nli, Ncol, Lx, Ly, D, dt, tmax)
 
-  N = Nx * Ny
-  nbNN = 5*(Nx*Ny) - 2*Nx - 2*Ny !! nombre d'éléments non nuls 
-
-  Allocate(AA(nbNN), IA(nbNN), JA(nbNN), U(Nx*Ny), F(Nx*Ny), U0(Nx*Ny), &
-        fsource(Nx,Ny), g(Nx,Ny), h(Nx,Ny), U_Mat(Nx,Ny), x(Nx), y(Ny), &
-        tab_i1(Np), tab_iN(Np), S(nbNN))
-
-  dx = Lx / Nx 
+  ! ____________________définition des paramètres globaux_____________________
+  beta = 0.01    ! tolerance
+  kmax = 100     ! nombre max d'itération
+  dx = Lx / Nx
   dy = Ly / Ny
-
   imax = Int(tmax/dt)
 
-  !-------------------------RESOLUTION---------------------------
-  eps = 0.01    ! GC, tolerance et nombre max d iteration
-  kmax = 100
+  ! _______________________découpage du domaine_______________________________
+  call charge(Ncol, Np, me, i1, iN) ! renvoie indices min et max des lignes
 
-  !génération de la matrice pentadiagonale
-  Call Mat(Nx,Ny,dx,dy,D,AA,JA,IA,dt)
-  
-  !on répartit la matrice A (en sparse) dans chaque proc
-  call charge(nbNN,Np,me,IA,tab_i1,tab_iN,i1,iN)
-  Nme = iN-i1+1 !nb d'éléments dans les vect locaux
-  NbLiMe = IA(iN)-IA(i1)+1 !nb de lignes différentes des elts stockés
-  NbColMe = JA(iN)-JA(i1)+1 !nb de colonnes différentes des elts stockés
+  Nlime = iN - i1 + 1 ! calcul du nombre de ligne pour chaque proc
 
-  Allocate(AAme(Nme),IAme(Nme),JAme(Nme))
-  AAme = AA(i1:iN)
-  IAme = IA(i1:iN)
-  JAme = JA(i1:iN)
-  Deallocate(AA,JA,IA) !note pour CR
+  N = Nlime*Ncol ! nombre d'éléments dans le domaine me
+  nbNN = 5*N - 2*Nlime - 2*Ncol !! nombre d'éléments non nuls pour chaque domaine
+  !cette valeur est necessaire pour le stockage sparse
+  ! 3 vecteurs
+  ! AA valeur des elements non nuls
+  ! IA (indice i) des elements non nuls
+  ! JA (indice j) des elements non nuls
 
-  !conditions aux bords
-  Call fsta(Lx,Ly,Nx,Ny,fsource)
-  Call gsta(Lx,Ly,Nx,Ny,g)
-  Call hsta(Lx,Ly,Nx,Ny,h)
+  !____________________________________________________________________________
+  ! definition de la matrice Ame et des vecteurs U0me et Ume pour chaque sous-système matriciel (par domaine)
+  !____________________________________________________________________________
+  Allocate(AAme(nbNN), IAme(nbNN), JAme(nbNN), U0me(N), Ume(N))
 
-  ! génération du terme source, conditions aux bords + fsource
-  Call secondMembre(F,Nx,Ny,dx,dy,D,fsource,g,h)
+  Call Mat(Nlime, Ncol, dx, dy, D, AAme, JAme, IAme, dt)
+  U0me = 0. !Etat initial puis solution à l'état précédent
 
-  allocate(Fme(NbLiMe),b(NbLiMe),U0me(NbColMe),Ume((NbColMe)))
-  Fme = F(IA(i1):IA(iN))
-  Deallocate(F)
+  ! ____________________________________________________________________________
+  ! definition des conditions aux bords et du second membre pour chaque sous-domaine
+  ! ____________________________________________________________________________
+  Allocate(gme(2,Ncol), hme(Nlime,2), fsourceme(Nlime,Ncol))
+  call g(me, Ncol, dx, dy, U0me, gme)   ! conditions aux bords horizontaux des sous-domaines
+  call h(me, Ncol, dx, dy, hme)         ! conditions aux bords verticaux des sous-domaines
+  call fsource(me, Ncol, dx, dy, fsourceme)   ! terme source des sous-domaines
 
-  !Initialisation : 
-  U0me = 2.! solution initiale ; U initialisé dans GC
-  
-  b = dt*Fme+U0me(IA(i1):IA(iN)) !mise à l'échelle des vecteurs
-  
-  !------on récupère le nb de lignes du proc d'avant et d'après
-  NbLiAv = 0
-  NbLiArr = 0
-  if (me==0) then
-     call MPI_SEND(NbLiMe,1,MPI_INTEGER,Me+1,102,MPI_COMM_WORLD,statinfo)
-     call MPI_RECV(NbLiAv,1,MPI_INTEGER,Me+1,101,MPI_COMM_WORLD,status,statinfo)
-  elseif (me==Np-1) then
-     call MPI_SEND(NbLiMe,1,MPI_INTEGER,Me-1,102,MPI_COMM_WORLD,statinfo)
-     call MPI_RECV(NbLiArr,1,MPI_INTEGER,Me-1,101,MPI_COMM_WORLD,status,statinfo)
-  else
-     call MPI_SEND(NbLiMe,1,MPI_INTEGER,Me-1,101,MPI_COMM_WORLD,statinfo)
-     call MPI_SEND(NbLiMe,1,MPI_INTEGER,Me+1,102,MPI_COMM_WORLD,statinfo)
-     call MPI_RECV(NbLiAv,1,MPI_INTEGER,Me+1,101,MPI_COMM_WORLD,status,statinfo)
-     call MPI_RECV(NbLiArr,1,MPI_INTEGER,Me-1,102,MPI_COMM_WORLD,status,statinfo)
-  end if
+  call secondMembre(Fme, Nlime, Ncol, dx, dy, D, gme, hme, fsourceme)    ! calcul du second membre
 
-  ! résolution du système AU = dt*F+U0, pour chaque pas de temps 
-  Do i = 1,imax
-     Call GC_SPARSE_PARLL(AAme,IAme,JAme,b,U0me,Ume,eps,kmax,NbLiMe,NbColMe,NbLiAv,NbLiArr,Me,statinfo,status,Np)
-     U0 = U
-  End Do
-  
+  ! ______________________résolution par itérations en temps___________________
+  do i = 1,imax  ! boucle sur le nombre d'itérations en temps
+    call GC_SPARSE(AAme, IAme, JAme, dt*Fme + U0me, U0me, Ume, beta, kmax, N)    ! resolution par GC sur chaque proc
+    U0me = Ume     ! mise à jour de la solution
+    ! communications MPI pour le recouvrement // créer type MPI_LIGNE
+    if (me /= Np-1) then
+       call MPI_SEND ! envoie dernière ligne à proc me+1
+       call MPI_RECV ! reçoit première ligne de me+1 dans la deuxième ligne de gme
+    end if
+    if (me /= 0) then
+      call MPI_SEND ! envoie première ligne à proc me-1
+      call MPI_RECV ! reçoit dernière ligne de me-1 dans la première ligne de gme
+    end if
+    call secondMembre(Fme, Nlime, Ncol, dx, dy, D, gme, hme, fsourceme) ! mise à jour du second membre
+  end do
+
+
+
+
+
+
+
+
+
+   ! affichage : pouvoir tracer la solution (les U) avec gnuplot
+   ! à refaire
+
+
   !-------------------------AFFICHAGE-----------------------------
 
-  Call vect_to_mat(U, U_Mat, Nx, Ny)
+  Call vect_to_mat(U, U_Mat, Nli, Ncol)
 
-  Do i = 1, Nx
+  Do i = 1, Nli
      x(i) = i * dx
   End Do
-  
-  Do i = 1, Ny
+
+  Do i = 1, Ncol
      y(i) = i * dy
   End Do
 
   Call WriteBinary(x, y, U_Mat, "resultat.dat")
-  
-!!$  !Instruction
-!!$  Print *,'Donner la valeur de Np'
-!!$  Read *, Np
-!!$  Do me=0,Np-1
-!!$     Call charge(nbNN,Np,me,IA,tab_i1,tab_iN,i1,iN)
-!!$     Print *, 'Les valeurs de i1 et de iN et delta N sont pour me= ',me,' :'
-!!$     Print *, i1,' ',iN,' ',iN-i1+1
-!!$     Print *, IA(i1), ' ', IA(iN), ' deltaI : ', IA(iN)-IA(i1)
-!!$     Print *, JA(i1), ' ', JA(iN), ' deltaJ : ', JA(iN)-JA(i1)
-!!$
-!!$  End Do
-!!$
-!!$  !!Vérification de MatVect en parallèle
-!!$  S = 0.
-!!$  Do me=0,Np-1
-!!$     Call charge(nbNN,Np,me,IA,tab_i1,tab_iN,i1,iN)
-!!$     S = S + MatVectSPARSE(AA(i1:iN),IA(i1:iN),JA(i1:iN),U0)
-!!$  End Do
-!!$
-!!$  !on affiche différence du pdt en sequentiel et parallèle (=0?)
-!!$  print *, S - MatVectSPARSE(AA,IA,JA,U0)
 
+  Deallocate(AAme, IAme, JAme, Ume, Fme, U0me, gme, hme, x, y)
 
-
-
-  Deallocate(AAme,IAme,JAme,Ume,Fme,U0me, g, h, U_Mat,x, y,tab_i1,tab_iN,S,b,U,U0)
-  
   call MPI_FINALIZE
 
 Contains
 
  Subroutine WriteBinary(x, y, v, nom_fichier)
-  
+
   Implicit None
-  
+
   ! arguments
   Real(PR), Dimension(:) :: x, y
   Real(PR), Dimension(:, :) :: v
   Character(len=*) :: nom_fichier
 
   ! variables locales
-  Integer :: i, j, Nx, Ny
-  
+  Integer :: i, j, Nli, Ncol
+
   Open(11, file = nom_fichier)
-  Nx = Size(x)
-  Ny = Size(y)
-  !  write(11,*) real(x(1),kind=PR), real(x(Nx),kind=PR), Nx !xmin, xmax, Nx
-  !  write(11,*) real(y(1),kind=PR), real(y(Ny),kind=PR), Ny !ymin, ymax, Ny
-  Do i = 1, Nx
-     Do j = 1, Ny
+  Nli = Size(x)
+  Ncol = Size(y)
+  !  write(11,*) real(x(1),kind=PR), real(x(Nli),kind=PR), Nli !xmin, xmax, Nli
+  !  write(11,*) real(y(1),kind=PR), real(y(Ncol),kind=PR), Ncol !ymin, ymax, Ncol
+  Do i = 1, Nli
+     Do j = 1, Ncol
         Write(11,*) x(i), y(j), Real(v(i, j), kind=4)
      End Do
   End Do
@@ -170,8 +142,6 @@ Contains
   Close(11)
 
 End Subroutine WriteBinary
-
-
 
 
 End  Program Main
