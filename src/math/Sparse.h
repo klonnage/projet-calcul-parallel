@@ -3,14 +3,14 @@
 
 class Sparse {
     double alpha, beta, gamma;
-    double N;
+    int Nx, Ny;
 public:
     Sparse () = delete;
-    Sparse (double N, double alpha, double beta, double gamma);
+    Sparse (int Nx, int Ny, double alpha, double beta, double gamma);
     Sparse (Sparse const& A);
     ~Sparse();
 
-    friend void gemv(double a, Sparse const& A, Vector& x);
+    friend void spmv(double a, Sparse const& A, Vector& x, double b, Vector& y);
 
     Vector operator*(Vector const& v) const;
 };

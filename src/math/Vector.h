@@ -23,13 +23,14 @@ public:
 
     Vector& scale(double alpha);
 
+    double* data() {return values;}
     double& operator[](int id);
     double  dot(Vector const& v)  const;
     double  nrm2() const;
 
     int size() const;
     operator double*() {return values;};
-    operator double const*() {return const_cast<double const*>(values);};
+    operator double const*() {return values;};
 };
 
 Vector operator+(Vector const &u, Vector const &v);
