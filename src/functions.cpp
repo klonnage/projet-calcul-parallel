@@ -38,7 +38,7 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
     }
 }
 
-void g(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
+void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
     int i;
     double y;
 
@@ -63,3 +63,25 @@ void g(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
         break;
     }
 }
+
+void charge( int rowCount, int np, int rank /* aka "me" */, int &iBegin, int &iEnd )
+{
+    int loadSize = rowCount / np;
+    int leftover = rowCount % np;
+
+    if ( leftover == 0 ) {
+        iBegin = rank * loadSize;
+        iEnd   = iBegin + loadSize - 1;
+    }
+    else {
+        if ( rank < leftover ) {
+            iBegin = rank * ( loadSize + 1 );
+            iEnd   = iBegin + loadSize;
+        }
+        else {
+            iBegin = leftover * ( loadSize + 1 ) + ( rank - leftover ) * loadSize;
+            iEnd   = iBegin + loadSize - 1;
+        }
+    }
+}
+
