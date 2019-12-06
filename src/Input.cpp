@@ -4,6 +4,8 @@
 #include <string>
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
+#include <cctype>
 
 using namespace std;
 
@@ -35,8 +37,9 @@ InputData ReadInput(const char *file)
     }
 
     string line;
-
+    auto my_isspace = [](char c) {return isspace(c);};
     unsigned int lineNumber = 0;
+    
     while( getline(inFile, line) )
     {
         auto separatorIndex = line.find_first_of(':');
@@ -47,6 +50,8 @@ InputData ReadInput(const char *file)
         }
         auto name = line.substr(0, separatorIndex + 1);
         auto val = line.substr(separatorIndex + 1);
+        
+        val.erase(remove_if(val.begin(), val.end(), my_isspace), val.end());
 
         READ_INT_VAR(Nx, name, val, data);
         READ_INT_VAR(Ny, name, val, data);
