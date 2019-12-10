@@ -3,6 +3,8 @@
 #include "second_membre.h"
 #include "Input.hpp"
 #include "functions.h"
+#include "Sparse.h"
+#include "Vector.h"
 
 #include <mpi.h>
 
@@ -40,20 +42,25 @@ int main()
     int nbLignes = iEnd - iBegin + 1;
     int nbElts  = nbLignes * inputData.Ly;
 
-    float a, b, c;                                  // les trois valeurs de la matrice penta-diagonale du pdf
-    Mat   A = FillA( nbLignes, inputData.Ly, a, b, c ); // Sparse !!! CONST CONST
+    float a = ((2./(dX*dX))+(2./(dY*dY))*inputData.D*inputData.dt + 1;
+    float b = -1./(dX*dX)*inputData.D*inputData.dt;
+    float c = -1./(dY*dY)*inputData.D*inputData.dt;
+    Sparse A(nbLigne, inputData.Ny, a, b, c);
 
-    Vec U( nbElts ), Uprev( nbElts, 0. ); // Uprev = (0,..., 0)
+    Vector U( nbElts ), Uprev( nbElts );
+    Uprev.set_value(0.);
 
     /* g : conditions aux bords en haut et en bas (les vecteurs concern�s par MPI !!!!!),
        h : """""""""""""""""""" � gauche et � droite */
-    Mat g = init_g( 2, inputData.Ly ); // go fonctions.f90, fonction g
-    Mat h = init_h( nbLignes, 2 ); // idem
+    Vector gme(2 * inputData.Ly);
+    Vector hme(nbLignes * 2);
+    Vector termeSource(nbLignes * inputData.Ly);
 
-    Mat termeSource =
-        init_terme_source( nbLigne, inputData.Ly ); // CONST CONST. Regarder finstaper dans fonctions.f90 pour l'initialisation
-
-    Vec F( nbELts );
+    g(rank, inputData.Ny, dX, inputData.Ly, gme, 1);
+    h(rank, nbLignes, iBegin, dY, inputData.Lx, hme, 1);
+    fsource(rank, inputData.Ny, nbLignes, iBegin, dX, dY, inputData.Lx, inputData.Ly, 0, termeSource, 1);
+    
+    Vector F( nbELts );
     calcul_second_membre( F, g, h, termeSource ); // secondMembre dans second_memebre_sparse.f90
 
     /* boucle principale */
