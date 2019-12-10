@@ -1,6 +1,7 @@
 #include "fonctions"
 #include "gradient_conj.h"
 #include "second_membre.h"
+#include "Input.hpp"
 
 #include <mpi.h>
 
@@ -8,19 +9,21 @@ int main()
 {
     setup_procs(); // r�partir les donn�es entre les procs, MPI
 
-    read_input( rowCount, colCount, (float)lX, (float)lY /*taille r�elle */, (float)coeff, (float)dt, (float)tmax );
 
     rank = MPI_COMM_RANK;
-    np   = MPI_COMM_SIZE
+    np   = MPI_COMM_SIZE;
+
+    //read_input( rowCount, colCount, (float)lX, (float)lY /*taille r�elle */, (float)coeff, (float)dt, (float)tmax );
+    auto inputData = ReadInput("parametres.dat");
 
         // param�tres globaux
-    float beta; // pr�cision
-    int       kmax;
-    float     dX = lX / colCount, dY = lY / rowCount;
-    int       imax = tmax / dt;
+    // float beta; // pr�cision
+    // int       kmax;
+    float     dX = inputData.Lx / inputData.Nx, dY = inputData.Ly / inputData.Ny;
+    int       imax = inputData.tMax / inputData.dt;
 
     int iBegin, iEnd;
-    repartir_charge( rowCount,
+    charge( rowCount,
                      np,
                      rank,
                      &iBegin,
