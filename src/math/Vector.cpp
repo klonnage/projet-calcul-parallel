@@ -24,10 +24,6 @@ double Vector::dot(Vector const& v) const {
     return cblas_ddot(this -> N, this -> values, 1, v.values, 1);
 }
 
-double& Vector::operator[](int id) {
-    return this -> values[id];
-}
-
 int Vector::size() const {
     return this -> N;
 }
@@ -45,6 +41,16 @@ Vector& Vector::operator=(Vector const& v) {
 Vector& Vector::scale(double alpha) {
     cblas_dscal(this -> N, alpha, this -> values, 1);
     return *this;
+}
+
+void Vector::set_value(double v) {
+    if (v == 0.) {
+        memset(this -> values, 0, sizeof(double));
+    } else {
+        for(int i = 0; i < this -> N; ++i) {
+            this -> values[i] = v;
+        }
+    }
 }
 
 void axpy(double alpha, Vector const& x, Vector& y) {
