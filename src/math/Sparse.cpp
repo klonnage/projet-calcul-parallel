@@ -1,6 +1,6 @@
 #include "Sparse.h"
 #include "Vector.h"
-#include <cblas.h>
+#include <mkl_cblas.h>
 
 Sparse::Sparse (int Nx, int Ny, double alpha, double beta, double gamma) :
 Nx(Nx), Ny(Ny), alpha(alpha), beta(beta), gamma(gamma)
