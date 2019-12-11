@@ -12,9 +12,10 @@ Sparse::Sparse (Sparse const& A) : Nx(Nx), Ny(Ny), alpha(alpha), beta(beta), gam
 Sparse::~Sparse() {}
 
 Vector Sparse::operator*(Vector const& v) const{
-  Vector res(v.size);
+  Vector res(v.size());
   /* The following does not create problem as x won't be modified */
   spmv(1., *this, const_cast<Vector&>(v), 0., res);
+  return res;
 }
 
 void spmv(double a, Sparse const& A, Vector& x, double b, Vector& y) {
