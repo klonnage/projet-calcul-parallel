@@ -1,5 +1,5 @@
-#include "fonctions"
-#include "gradient_conj.h"
+#include "functions.h"
+#include "GradConj.h"
 #include "second_membre.h"
 #include "Input.hpp"
 #include "functions.h"
