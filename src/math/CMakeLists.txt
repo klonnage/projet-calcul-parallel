@@ -14,7 +14,10 @@ target_compile_options(
     smath
     PUBLIC
         ${FLAGS_DEBUG}
+         -DMKL_ILP64 -m64 -I${MKLROOT}/include
 )
+
+add_link_options( -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl)
 
 set_target_properties(
         smath
