@@ -42,4 +42,4 @@ find_package(MPI)
         message(FATAL_ERROR "MPI not found !")
 endif()
 
-target_link_options(exe PUBLIC -L$ENV{MKLROOT}/lib/intel64 -Wl --no-as-needed -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl )
+target_link_options(exe PUBLIC -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl )
