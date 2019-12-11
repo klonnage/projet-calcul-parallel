@@ -1,7 +1,9 @@
-add_subdirectory(math)
+#add_subdirectory(math)
 
-set(PROJ_SOURCES functions.cpp GradConj.cpp Input.cpp main.cpp)
-set(PROJ_HEADERS functions.h Input.h GradConj.h )
+set(PROJ_SOURCES functions.cpp GradConj.cpp Input.cpp main.cpp math/Sparse.cpp math/Vector.cpp math/Mat.cpp)
+set(PROJ_HEADERS functions.h Input.h GradConj.h math/Sparse.h math/Vector.h math/Mat.h)
+
+set( FLAGS_RELEASE -O3 -fopenmp -Wall -Wextra -Wno-unused-parameter )
 
 add_executable(
     exe
@@ -16,11 +18,11 @@ target_include_directories(
         "${PROJECT_SOURCE_DIR}/src/math"
 )
 
-target_link_libraries(
-    exe
-    PUBLIC 
-        smath
-)
+#target_link_libraries(
+#    exe
+#    PUBLIC 
+#        smath
+#)
 
 target_compile_options(
     exe

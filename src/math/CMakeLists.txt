@@ -1,4 +1,3 @@
-set( FLAGS_DEBUG -g -fopenmp -Wall -Wextra -Wno-unused-parameter )
 set( FLAGS_RELEASE -O3 -fopenmp -Wall -Wextra -Wno-unused-parameter )
 
 set( LIB_SOURCES Mat.cpp Sparse.cpp Vector.cpp )
