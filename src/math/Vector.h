@@ -24,7 +24,8 @@ public:
     Vector& scale(double alpha);
 
     double* data() {return values;}
-    double& operator[](int id);
+    double& operator[](int id) {return values[id];};
+    double  operator[](int id) const {return values[id];};
     double  dot(Vector const& v)  const;
     double  nrm2() const;
 

@@ -27,7 +27,6 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
             for (i = 0; i < Ncol; ++i) {
                 gme[shift + i] = sin((double)(i) * dx) + cos_border;
             }
-
         }
         break;
     case 3:
@@ -38,6 +37,7 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
     }
 }
 
+// Fixme : change ligne major h et g
 void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
     int i;
     double y;
@@ -74,7 +74,7 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
             for (int j = 0; j < Ncol; ++j) {
                 double x = (double)(i + i1 - 1) * dx;
                 double y = (double)(j) * dy;
-                fsourceme[i * Nlime + j] = 2 * (y - y**2 + x - x**2);
+                fsourceme[i * Ncol + j] = 2 * (y - y**2 + x - x**2);
             }
         }
         break;
@@ -83,7 +83,7 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
             for (int j = 0; j < Ncol; ++j) {
                 double x = (double)(i + i1 - 1) * dx;
                 double y = (double)(j) * dy;
-                fsourceme[i * Nlime + j] = sin(x) + cos(y);
+                fsourceme[i * Ncol + j] = sin(x) + cos(y);
             }
         }
         
@@ -96,7 +96,7 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
                 double y = (double)(j) * dy;
                 double tmpx = (x - Lx*0.5);
                 double tmpy = (y - Ly*0.5);
-                fsourceme[i * Nlime + j] = exp( - tmpx * tmpx  - tmpy * tmpy) * cos (t * M_PI * 0.5);
+                fsourceme[i * Ncol + j] = exp( - tmpx * tmpx  - tmpy * tmpy) * cos (t * M_PI * 0.5);
             }
         }
 
