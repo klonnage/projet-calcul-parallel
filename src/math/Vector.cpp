@@ -1,5 +1,5 @@
 #include "Vector.h"
-#include <cblas.h>
+#include <mkl_cblas.h>
 #include <cassert>
 #include <cstring>
 
