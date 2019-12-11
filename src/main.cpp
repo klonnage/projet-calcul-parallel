@@ -7,6 +7,9 @@
 #include "functions.h"
 
 #include <mpi.h>
+#include <iostream>
+
+#define str(x) #x
 
 int main( int argc, char **argv )
 {
@@ -28,6 +31,8 @@ int main( int argc, char **argv )
             rank,
             iBegin,
             iEnd ); // retourne l'indice de la ligne de d�but et de celle de fin pour chaque proc
+
+    std::cout << "[ " << rank << " ] " << str(iBegin) " " << iBegin << " " str(iEnd) " " << iEnd << std::endl;
 
     if ( rank != 0 ) { // toujours avoir une ligne en commun pour tester schwarz
         iBegin = iBegin - 1;
