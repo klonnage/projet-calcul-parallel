@@ -42,7 +42,7 @@ InputData ReadInput( const char *file )
             cerr << "No separator character (':') at line " << lineNumber << endl;
             continue;
         }
-        auto   name              = line.substr( 0, separatorIndex + 1 );
+        auto   name              = line.substr( 0, separatorIndex );
         auto   commentStartIndex = line.find_first_of( '#' );
         string val;
         if ( commentStartIndex == string::npos ) { val = line.substr( separatorIndex + 1 ); }
@@ -64,7 +64,7 @@ InputData ReadInput( const char *file )
         READ_FLOAT_VAR( eps, name, val, data );
         READ_INT_VAR( mode, name, val, data );
 
-        cerr << "Line " << lineNumber << "Was not parsed. Read parameter \"" << name << "\" and val \"" << val << "\""
+        cerr << "Line " << lineNumber << " was not parsed. Read parameter \"" << name << "\" and val \"" << val << "\""
              << endl;
 
     while_end:
