@@ -76,5 +76,5 @@ void Vector::set_value( double v )
 void axpy( double alpha, Vector const &x, Vector &y )
 {
     /* Authorized as x won't be modified */
-    cblas_daxpy( x.size(), alpha, x.data(), 1, y, 1 );
+    cblas_daxpy( x.size(), alpha, x.data(), 1, y.data(), 1 );
 }
