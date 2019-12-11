@@ -15,7 +15,7 @@ int main( int argc, char **argv )
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
     MPI_Comm_size( MPI_COMM_WORLD, &np );
 
-    auto inputData = ReadInput( "parametres.dat" );
+    auto inputData = ReadInput( "../../data/parametres.dat" );
 
     float dX = inputData.Lrow / inputData.rowCount, dY = inputData.Lcol / inputData.colCount;
     int   imax = inputData.tMax / inputData.dt;
