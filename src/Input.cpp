@@ -1,4 +1,4 @@
-#include "Input.hpp"
+#include "Input.h"
 
 #include <algorithm>
 #include <cctype>
@@ -42,28 +42,30 @@ InputData ReadInput( const char *file )
             cerr << "No separator character (':') at line " << lineNumber << endl;
             continue;
         }
-        auto name              = line.substr( 0, separatorIndex + 1 );
-        auto commentStartIndex = line.find_first_of( '#' );
+        auto   name              = line.substr( 0, separatorIndex + 1 );
+        auto   commentStartIndex = line.find_first_of( '#' );
         string val;
         if ( commentStartIndex == string::npos ) { val = line.substr( separatorIndex + 1 ); }
-        else
-        {
-            val = line.substr(separatorIndex + 1, commentStartIndex - separatorIndex - 1);
+        else {
+            val = line.substr( separatorIndex + 1, commentStartIndex - separatorIndex - 1 );
         }
 
         val.erase( remove_if( val.begin(), val.end(), my_isspace ), val.end() );
 
-        READ_INT_VAR( Nx, name, val, data );
-        READ_INT_VAR( Ny, name, val, data );
-        READ_FLOAT_VAR( Lx, name, val, data );
-        READ_FLOAT_VAR( Ly, name, val, data );
+        READ_INT_VAR( rowCount, name, val, data );
+        READ_INT_VAR( colCount, name, val, data );
+        READ_FLOAT_VAR( Lrow, name, val, data );
+        READ_FLOAT_VAR( Lcol, name, val, data );
         READ_FLOAT_VAR( D, name, val, data );
         READ_FLOAT_VAR( dt, name, val, data );
         READ_FLOAT_VAR( tMax, name, val, data );
         READ_FLOAT_VAR( beta, name, val, data );
         READ_INT_VAR( kmax, name, val, data );
+        READ_FLOAT_VAR( eps, name, val, data );
+        READ_INT_VAR( mode, name, val, data );
 
-        cerr << "Line " << lineNumber << "Was not parsed. Read parameter \"" << name << "\" and val \"" << val << "\"" << endl;
+        cerr << "Line " << lineNumber << "Was not parsed. Read parameter \"" << name << "\" and val \"" << val << "\""
+             << endl;
 
     while_end:
         ++lineNumber;

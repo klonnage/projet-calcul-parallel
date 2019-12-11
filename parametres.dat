@@ -1,11 +1,11 @@
-50                       #Nli , nombre de noeuds dans la direction x
-50                       #Ncol , nombre de noeuds dans la direction y
-1.0                      #Lx , longueur dans la direction x
-1.0                      #Ly , longueur dans la direction y
-1.0                      #D  , coefficient de diffusion
-0.00001                  #dt , pas de temps
-0.2                      #Tmax , temps final
-1                        #mode, 1 = sta, 2 = per, 3 = instaper
-0.01                     #beta, tolérance de GC
-100                      #kmax, nombre max d'itérations
-0.00001                  #eps, tolérance de Schwartz
+rowCount:50                       #Nli , nombre de noeuds dans la direction x
+colCount:50                       #Ncol , nombre de noeuds dans la direction y
+Lrow:1.0                      #Lx , longueur dans la direction x
+Lcol:1.0                      #Ly , longueur dans la direction y
+D:1.0                      #D  , coefficient de diffusion
+dt:0.00001                  #dt , pas de temps
+tMax:0.2                      #Tmax , temps final
+beta:0.01                     #beta, tolérance de GC
+kmax:100                      #kmax, nombre max d'itérations
+eps:0.00001                  #eps, tolérance de Schwartz
+mode:1                        #mode, 1 = sta, 2 = per, 3 = instaper

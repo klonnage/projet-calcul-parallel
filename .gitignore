@@ -80,6 +80,8 @@ _deps
 *.userosscache
 *.sln.docstates
 
+out/*
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
