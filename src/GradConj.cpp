@@ -20,8 +20,9 @@ void GC_sparse_parallel(Sparse const& A,
 
     /* Computed here and updated at the end of the loop (avoid twice computing the same thing) */
     double rdotr = r.dot(r);
+    beta = rdotr;
     for (size_t k = 0; k < kmax && beta > eps; ++k) {
-        gemv(1., A, prod);
+        spmv(1., A, prod, 0., prod);
         alpha = rdotr / p.dot(prod);
 
         /* x <- x + alpha * p */
