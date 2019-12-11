@@ -74,7 +74,7 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
             for (int j = 0; j < Ncol; ++j) {
                 double x = (double)(i + i1 - 1) * dx;
                 double y = (double)(j) * dy;
-                fsourceme[i * Ncol + j] = 2 * (y - y**2 + x - x**2);
+                fsourceme[i * Ncol + j] = 2 * (y - y*y + x - x*x);
             }
         }
         break;
