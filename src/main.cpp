@@ -74,9 +74,6 @@ int main( int argc, char **argv )
     MPI_Type_contiguous( inputData.colCount, MPI_DOUBLE, &line );
     MPI_Type_commit( &line );
 
-    Vector Uprev( nbElts );
-    Uprev.set_value( 0. );
-
     ///* boucle principale */
     double *torecv = new double[inputData.colCount];
 
