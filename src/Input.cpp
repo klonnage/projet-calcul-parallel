@@ -63,6 +63,7 @@ InputData ReadInput( const char *file )
         READ_INT_VAR( kmax, name, val, data );
         READ_FLOAT_VAR( eps, name, val, data );
         READ_INT_VAR( mode, name, val, data );
+        READ_INt_VAR( coverage, name, val, data );
 
         cerr << "Line " << lineNumber << " was not parsed. Read parameter \"" << name << "\" and val \"" << val << "\""
              << endl;

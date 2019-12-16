@@ -109,6 +109,9 @@ int main( int argc, char **argv )
 
     delete[] torecv;
     MPI_Type_free( &line );
+
+
+    
     MPI_Finalize();
     return 0;
 }

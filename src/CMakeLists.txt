@@ -1,7 +1,24 @@
 #add_subdirectory(math)
 
-set(PROJ_SOURCES functions.cpp GradConj.cpp Input.cpp main.cpp second_membre.cpp math/Sparse.cpp math/Vector.cpp math/Mat.cpp)
-set(PROJ_HEADERS functions.h Input.h GradConj.h second_membre.h math/Sparse.h math/Vector.h math/Mat.h)
+set(PROJ_SOURCES
+    functions.cpp
+    GradConj.cpp
+    Input.cpp
+    main.cpp
+    second_membre.cpp
+    output.cpp
+    math/Sparse.cpp
+    math/Vector.cpp
+    math/Mat.cpp)
+set(PROJ_HEADERS
+    functions.h
+    Input.h
+    GradConj.h
+    output.h
+    second_membre.h
+    math/Sparse.h
+    math/Vector.h
+    math/Mat.h)
 
 set( FLAGS_RELEASE -O3 -fopenmp -Wall -Wextra -Wno-unused-parameter )
 set(FLAGS_DEBUG -g -Wall -Wextra -Wno-unused-parameter)

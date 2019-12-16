@@ -8,6 +8,7 @@ struct InputData {
     int kmax;
     float eps;
     int mode;
+    int coverage;
 };
 
 InputData ReadInput(const char *file);

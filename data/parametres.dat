@@ -9,3 +9,4 @@ beta:0.01                     #beta, tolérance de GC
 kmax:100                      #kmax, nombre max d'itérations
 eps:0.00001                  #eps, tolérance de Schwartz
 mode:1                        #mode, 1 = sta, 2 = per, 3 = instaper
+coverage:1                  #recouvrement
