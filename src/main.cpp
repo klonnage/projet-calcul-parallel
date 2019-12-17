@@ -67,7 +67,7 @@ int main( int argc, char **argv )
                           dY,
                           inputData.D,
                           gme,
-                          hme,  
+                          hme,
                           termeSource ); // secondMembre dans second_memebre_sparse.f90
 
     MPI_Datatype line;
@@ -110,8 +110,6 @@ int main( int argc, char **argv )
     delete[] torecv;
     MPI_Type_free( &line );
 
-
-    
     MPI_Finalize();
     return 0;
 }
