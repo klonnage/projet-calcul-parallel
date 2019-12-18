@@ -18,14 +18,17 @@ void write_vector_to_file( const Vector &U, int Ncol, int iBegin, int iEnd, floa
     std::time_t       writeTime = std::chrono::system_clock::to_time_t( std::chrono::system_clock::now() );
     std::stringstream ss;
     ss << std::ctime( &writeTime );
-    std::string fileName( "out/GradConj_" );
+    std::string fileName( "GradConj_" );
     fileName += std::to_string( rank );
     fileName += '_';
     fileName += ss.str();
-    fileName += std::string( ".txt" );
-    auto isnon_alphanumeric = []( char c ) { return std::isspace( c ) || std::isalnum( c ); };
+    auto isnon_alphanumeric = []( char c ) { return std::isspace( c ) || !std::isalnum( c ); };
     std::replace_if( fileName.begin(), fileName.end(), isnon_alphanumeric, '_' );
 
+    std::string extension( ".txt" );
+    std::string path("out/");
+    
+    fileName = path + fileName + extension;
     // create file
     std::ofstream outputFile( fileName, std::ios::out | std::ios::trunc );
     if ( !outputFile.is_open() ) {
