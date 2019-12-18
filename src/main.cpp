@@ -3,6 +3,7 @@
 #include "Sparse.h"
 #include "Vector.h"
 #include "functions.h"
+#include "output.h"
 #include "second_membre.h"
 
 #include <cstring>
@@ -49,9 +50,9 @@ int main( int argc, char **argv )
     Vector U( nbElts ), Uprev( nbElts );
     Uprev.set_value( 0. );
 
-    ///* g : conditions aux bords en haut et en bas (les vecteurs concern�s par MPI !!!!!),
-    //   h : """""""""""""""""""" � gauche et � droite */
-    Vector gme( 2 * inputData.Lcol );
+    // g : conditions aux bords en haut et en bas (les vecteurs conceres par MPI !!!!!),
+    //   h : """""""""""""""""""" a gauche et a droite
+    /*Vector gme( 2 * inputData.Lcol );
     Vector hme( nbLignes * 2 );
     Vector termeSource( nbLignes * inputData.Lcol );
 
@@ -74,7 +75,7 @@ int main( int argc, char **argv )
     MPI_Type_contiguous( inputData.colCount, MPI_DOUBLE, &line );
     MPI_Type_commit( &line );
 
-    ///* boucle principale */
+    // boucle principale
     double *torecv = new double[inputData.colCount];
 
     for ( int i = 0; i < imax; ++i ) {
@@ -92,13 +93,13 @@ int main( int argc, char **argv )
             rnext = ( rank + 1 ) % np;
             rprev = ( rank + np - 1 ) % np;
 
-            /* First send previous last row */
+            // First send previous last row
             double *tosend = U.data() + ( nbLignes - 2 ) * inputData.colCount;
-            /* Everyone send to the next rank and receive from the previous */
+            // Everyone send to the next rank and receive from the previous
             MPI_Sendrecv( tosend, 1, line, rnext, 0, torecv, 1, line, rprev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-            /* Except 0, all update gme */
+            // Except 0, all update gme
             if ( rank != 0 ) { memcpy( gme.data(), torecv, inputData.colCount * sizeof( double ) ); }
-            /* Second row */
+            // Second row
             tosend = U.data() + inputData.colCount;
             MPI_Sendrecv( tosend, 1, line, rprev, 0, torecv, 1, line, rnext, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
             if ( rank != np - 1 ) {
@@ -110,6 +111,7 @@ int main( int argc, char **argv )
     delete[] torecv;
     MPI_Type_free( &line );
 
+    write_vector_to_file( U, inputData.colCount, iBegin, iEnd, dX, dY );*/
     MPI_Finalize();
     return 0;
 }
