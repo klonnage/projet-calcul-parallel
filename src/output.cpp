@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <locale>
 #include <mpi.h>
 #include <sstream>
 #include <string>
@@ -16,14 +17,14 @@ void write_vector_to_file( const Vector &U, int Ncol, int iBegin, int iEnd, floa
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
     std::time_t       writeTime = std::chrono::system_clock::to_time_t( std::chrono::system_clock::now() );
     std::stringstream ss;
-    ss << std::ctime(&writeTime);
+    ss << std::ctime( &writeTime );
     std::string fileName( "out/GradConj_" );
-    fileName += std::to_string(rank);
+    fileName += std::to_string( rank );
     fileName += '_';
     fileName += ss.str();
-    fileName += std::string(".txt");
-    auto my_isspace = []( char c ) { return std::isspace( c ); };
-    std::replace_if( fileName.begin(), fileName.end(), my_isspace, '_' );
+    fileName += std::string( ".txt" );
+    auto isnon_alphanumeric = []( char c ) { return std::isspace( c ) || std::isalnum( c ); };
+    std::replace_if( fileName.begin(), fileName.end(), isnon_alphanumeric, '_' );
 
     // create file
     std::ofstream outputFile( fileName, std::ios::out | std::ios::trunc );
