@@ -18,7 +18,7 @@ void write_vector_to_file( const Vector &U, int Ncol, int iBegin, int iEnd, floa
     std::stringstream ss;
     ss << writeTime;
     std::string fileName( "out/GradConj_" );
-    fileName += rank;
+    fileName += std::to_string(rank);
     fileName += '_';
     fileName += ss.str();
     auto my_isspace = []( char c ) { return std::isspace( c ); };

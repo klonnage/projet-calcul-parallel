@@ -109,9 +109,9 @@ int main( int argc, char **argv )
     }
 
     delete[] torecv;
-    MPI_Type_free( &line );
+    MPI_Type_free( &line );*/
 
-    write_vector_to_file( U, inputData.colCount, iBegin, iEnd, dX, dY );*/
+    write_vector_to_file( U, inputData.colCount, iBegin, iEnd, dX, dY );
     MPI_Finalize();
     return 0;
 }
