@@ -52,7 +52,7 @@ int main( int argc, char **argv )
 
     // g : conditions aux bords en haut et en bas (les vecteurs conceres par MPI !!!!!),
     //   h : """""""""""""""""""" a gauche et a droite
-    /*Vector gme( 2 * inputData.Lcol );
+    Vector gme( 2 * inputData.Lcol );
     Vector hme( nbLignes * 2 );
     Vector termeSource( nbLignes * inputData.Lcol );
 
@@ -109,7 +109,7 @@ int main( int argc, char **argv )
     }
 
     delete[] torecv;
-    MPI_Type_free( &line );*/
+    MPI_Type_free( &line );
 
     write_vector_to_file( U, inputData.colCount, iBegin, iEnd, dX, dY );
     MPI_Finalize();
