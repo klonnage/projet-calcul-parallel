@@ -21,7 +21,8 @@ void write_vector_to_file( const Vector &U, int Ncol, int iBegin, int iEnd, floa
     fileName += rank;
     fileName += '_';
     fileName += ss.str();
-    std::replace_if( fileName.begin(), fileName.end(), std::isspace, '_' );
+    auto my_isspace = []( char c ) { return std::isspace( c ); };
+    std::replace_if( fileName.begin(), fileName.end(), my_isspace, '_' );
 
     // create file
     std::ofstream outputFile( fileName, std::ios::out | std::ios::trunc );
