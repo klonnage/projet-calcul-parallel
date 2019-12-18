@@ -21,6 +21,7 @@ void write_vector_to_file( const Vector &U, int Ncol, int iBegin, int iEnd, floa
     fileName += std::to_string(rank);
     fileName += '_';
     fileName += ss.str();
+    fileName += std::string(".txt");
     auto my_isspace = []( char c ) { return std::isspace( c ); };
     std::replace_if( fileName.begin(), fileName.end(), my_isspace, '_' );
 
