@@ -16,7 +16,7 @@ void write_vector_to_file( const Vector &U, int Ncol, int iBegin, int iEnd, floa
     MPI_Comm_rank( MPI_COMM_WORLD, &rank );
     std::time_t       writeTime = std::chrono::system_clock::to_time_t( std::chrono::system_clock::now() );
     std::stringstream ss;
-    ss << writeTime;
+    ss << std::ctime(&writeTime);
     std::string fileName( "out/GradConj_" );
     fileName += std::to_string(rank);
     fileName += '_';
@@ -29,7 +29,7 @@ void write_vector_to_file( const Vector &U, int Ncol, int iBegin, int iEnd, floa
     std::ofstream outputFile( fileName, std::ios::out | std::ios::trunc );
     if ( !outputFile.is_open() ) {
         std::cerr << "[Rank " << rank << "] could not create file " << fileName
-                  << ".\n Maybe the out directory does not exist ?" << std::endl;
+                  << ".\n Maybe no \"out\" directory exists in the same directory as exe ?" << std::endl;
         return;
     }
 
