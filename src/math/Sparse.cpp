@@ -1,12 +1,13 @@
 #include "Sparse.h"
 #include "Vector.h"
+#include <iostream>
 #include <mkl_cblas.h>
 
 Sparse::Sparse (int Nx, int Ny, double alpha, double beta, double gamma) :
 Nx(Nx), Ny(Ny), alpha(alpha), beta(beta), gamma(gamma)
 {}
 
-Sparse::Sparse (Sparse const& A) : Nx(Nx), Ny(Ny), alpha(alpha), beta(beta), gamma(gamma)
+Sparse::Sparse (Sparse const& A) : Nx(A.Nx), Ny(A.Ny), alpha(A.alpha), beta(A.beta), gamma(A.gamma)
 {}
 
 Sparse::~Sparse() {}
@@ -29,6 +30,8 @@ void spmv(double a, Sparse const& A, Vector& x, double b, Vector& y) {
   cblas_daxpy(x.size() - 1, a * A.beta, x.data(), 1, y.data() + 1, 1);
 
   /* Scale by gamma */
-  cblas_daxpy(x.size() - A.Ny, a * A.gamma, x.data() + A.Ny, 1, y.data(), 1);
-  cblas_daxpy(x.size() - A.Ny, a * A.gamma, x.data(), 1, y.data() + A.Ny, 1);
+  if (x.size() - A.Ny >= 1) {
+    cblas_daxpy(x.size() - A.Ny, a * A.gamma, x.data() + A.Ny, 1, y.data(), 1);
+    cblas_daxpy(x.size() - A.Ny, a * A.gamma, x.data(), 1, y.data() + A.Ny, 1);
+  }
 }

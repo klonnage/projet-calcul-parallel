@@ -1,8 +1,9 @@
 #pragma once
+#include <iostream>
 
 class Vector {
-    double *values;
-    int     N;
+  int     N;
+  double *values;
 
   public:
     /* Par défaut : vecteur null */
@@ -30,7 +31,8 @@ class Vector {
 
     double *      data() { return values; }
     const double *data() const { return values; }
-    double &      operator[]( int id ) { return values[id]; };
+    double &      operator[]( int id ) { return values[id]; }
+
     double        operator[]( int id ) const { return values[id]; };
     double        dot( Vector const &v ) const;
     double        nrm2() const;
@@ -38,6 +40,7 @@ class Vector {
     int size() const;
 };
 
+std::ostream& operator<<(std::ostream& os, Vector const& v);
 Vector operator+( Vector const &u, Vector const &v );
 Vector operator-( Vector const &u, Vector const &v );
 void   axpy( double alpha, Vector const &x, Vector &y );

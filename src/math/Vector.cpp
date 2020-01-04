@@ -20,6 +20,7 @@ Vector::Vector( Vector const &v )
 Vector::~Vector()
 {
     delete[] values;
+    values = nullptr;
 }
 
 Vector &Vector::operator+=( Vector const &v )
@@ -46,7 +47,7 @@ int Vector::size() const
 
 Vector &Vector::operator=( Vector const &v )
 {
-    if ( this->values != nullptr ) { delete[] this->values; }
+    if ( this->values != nullptr && N != 0 ) { delete[] this->values; }
     this->N      = v.N;
     this->values = new double[this->N];
     memcpy( this->values, v.values, this->N * sizeof( double ) );
@@ -67,7 +68,7 @@ Vector &Vector::scale( double alpha )
 
 void Vector::set_value( double v )
 {
-    if ( v == 0. ) { memset( this->values, 0, sizeof( double ) ); }
+    if ( v == 0. ) { memset( this->values, 0, sizeof( double )*N ); }
     else {
         for ( int i = 0; i < this->N; ++i ) { this->values[i] = v; }
     }
@@ -77,4 +78,13 @@ void axpy( double alpha, Vector const &x, Vector &y )
 {
     /* Authorized as x won't be modified */
     cblas_daxpy( x.size(), alpha, x.data(), 1, y.data(), 1 );
+}
+
+std::ostream& operator<<(std::ostream& os, Vector const& v) {
+  os << "{ ";
+  for(int i = 0; i < v.size(); ++i) {
+    os << v[i] << " "; 
+  }
+  os << "}";
+  return os;
 }

@@ -7,7 +7,6 @@
 
 void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
     int i;
-    double x;
 
     int size;
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -19,11 +18,16 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
         break;
     case 2:
         gme.set_value(0.);
-        if (me == 0 || me == size) {
+        if (me == 0) {
             /* Compute shift in gme plus constant value */
-            int bool_first = (me == 0);
-            int shift = (!bool_first) * Ncol;
-            double cos_border = (bool_first) ? 1 : cos(Ly);
+            double cos_border = 1.;
+            for (i = 0; i < Ncol; ++i) {
+                gme[i] = sin((double)(i) * dx) + 1.;
+            }
+        }
+        if (me == size -1) {
+            int shift =  Ncol;
+            double cos_border = cos(Ly);
             for (i = 0; i < Ncol; ++i) {
                 gme[shift + i] = sin((double)(i) * dx) + cos_border;
             }
@@ -48,11 +52,12 @@ void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
         hme.set_value(0.);
         break;
     case 2:
-        y = (double)(i - i1 + 1)*dy;
         for (i = 0; i < Nlime; ++i) {
+            y = (double)(i - i1)*dy;
             hme[Nlime + i] = cos(y) + sin(Lx);
         }
         for (i = 0; i < Nlime; ++i) {
+            y = (double)(i - i1)*dy;
             hme[i]         = cos(y);
         }
         break;
@@ -72,7 +77,7 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
     case 1:
         for (int i = 0; i < Nlime; ++i) {
             for (int j = 0; j < Ncol; ++j) {
-                double x = (double)(i + i1 - 1) * dx;
+                double x = (double)(i + i1) * dx;
                 double y = (double)(j) * dy;
                 fsourceme[i * Ncol + j] = 2 * (y - y*y + x - x*x);
             }
@@ -81,7 +86,7 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
     case 2:
         for (int i = 0; i < Nlime; ++i) {
             for (int j = 0; j < Ncol; ++j) {
-                double x = (double)(i + i1 - 1) * dx;
+                double x = (double)(i + i1) * dx;
                 double y = (double)(j) * dy;
                 fsourceme[i * Ncol + j] = sin(x) + cos(y);
             }
@@ -92,7 +97,7 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
     case 3:
         for (int i = 0; i < Nlime; ++i) {
             for (int j = 0; j < Ncol; ++j) {
-                double x = (double)(i + i1 - 1) * dx;
+                double x = (double)(i + i1) * dx;
                 double y = (double)(j) * dy;
                 double tmpx = (x - Lx*0.5);
                 double tmpy = (y - Ly*0.5);

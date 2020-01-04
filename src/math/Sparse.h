@@ -2,8 +2,8 @@
 #include "Vector.h"
 
 class Sparse {
-    double alpha, beta, gamma;
     int Nx, Ny;
+    double alpha, beta, gamma;
 public:
     Sparse () = delete;
     Sparse (int Nx, int Ny, double alpha, double beta, double gamma);

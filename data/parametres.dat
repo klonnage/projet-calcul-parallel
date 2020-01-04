@@ -5,7 +5,7 @@ Lcol:1.0                      #Ly , longueur dans la direction y
 D:1.0                      #D  , coefficient de diffusion
 dt:0.00001                  #dt , pas de temps
 tMax:0.2                      #Tmax , temps final
-beta:0.01                     #beta, tolérance de GC
+beta:0.0001                     #beta, tolérance de GC
 kmax:100                      #kmax, nombre max d'itérations
 eps:0.00001                  #eps, tolérance de Schwartz
 mode:1                        #mode, 1 = sta, 2 = per, 3 = instaper
