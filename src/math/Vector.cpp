@@ -74,6 +74,11 @@ void Vector::set_value( double v )
     }
 }
 
+void Vector::set( Vector const &v ) {
+    N = v.N;
+    memcpy(values, v.values, N);
+}
+
 void axpy( double alpha, Vector const &x, Vector &y )
 {
     /* Authorized as x won't be modified */

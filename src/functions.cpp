@@ -69,7 +69,25 @@ void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
     }
 }
 
-
+void solution(int me, int Ncol, int Nlime, int i1, double dx, double dy, double Lx, double Ly, double t, Vector& solutionme, int mode) {
+    switch (mode)
+    {
+    case 1:
+        for (int i = 0; i < Nlime; ++i)
+        {
+            for (int j = 0; j < Ncol; ++j)
+            {
+                double x = (double)(i + 1 + i1) * dx;
+                double y = (double)(j + 1) * dy;
+                solutionme[i * Ncol + j] = y*(1 - y)*x*(1 - x);
+            }
+        }
+        break;
+    
+    default:
+        break;
+    }
+}
 
 void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double Lx, double Ly, double t, Vector& fsourceme, int mode) {
     switch (mode)
@@ -77,8 +95,8 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
     case 1:
         for (int i = 0; i < Nlime; ++i) {
             for (int j = 0; j < Ncol; ++j) {
-                double x = (double)(i + i1) * dx;
-                double y = (double)(j) * dy;
+                double x = (double)(i + 1 + i1) * dx;
+                double y = (double)(j + 1) * dy;
                 fsourceme[i * Ncol + j] = 2 * (y - y*y + x - x*x);
             }
         }
@@ -86,8 +104,8 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
     case 2:
         for (int i = 0; i < Nlime; ++i) {
             for (int j = 0; j < Ncol; ++j) {
-                double x = (double)(i + i1) * dx;
-                double y = (double)(j) * dy;
+                double x = (double)(i + 1 + i1) * dx;
+                double y = (double)(j + 1) * dy;
                 fsourceme[i * Ncol + j] = sin(x) + cos(y);
             }
         }
@@ -97,8 +115,8 @@ void fsource(int me, int Ncol, int Nlime, int i1, double dx, double dy, double L
     case 3:
         for (int i = 0; i < Nlime; ++i) {
             for (int j = 0; j < Ncol; ++j) {
-                double x = (double)(i + i1) * dx;
-                double y = (double)(j) * dy;
+                double x = (double)(i + 1 + i1) * dx;
+                double y = (double)(j + 1) * dy;
                 double tmpx = (x - Lx*0.5);
                 double tmpy = (y - Ly*0.5);
                 fsourceme[i * Ncol + j] = exp( - tmpx * tmpx  - tmpy * tmpy) * cos (t * M_PI * 0.5);
@@ -118,7 +136,13 @@ void charge( int rowCount, int np, int rank /* aka "me" */, int &iBegin, int &iE
     int loadSize = rowCount / np;
     int leftover = rowCount % np;
 
-    if ( leftover == 0 ) {
+    // if (rank == 0 && np == 1) {
+    //     iBegin = rank * loadSize;
+    //     iEnd   = iBegin + loadSize;
+    //     return;
+    // }
+
+    if ( leftover == 0  ) {
         iBegin = rank * loadSize;
         iEnd   = iBegin + loadSize - 1;
     }

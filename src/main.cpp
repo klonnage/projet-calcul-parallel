@@ -12,6 +12,18 @@
 
 #define str( x ) #x
 
+using namespace std;
+static void disp_vector(Vector const& u, int Ncol) {
+  cout << "{" << endl;
+  for(int i = 0; i < Ncol; ++i) {
+    for(int j = 0; j < Ncol; ++j) {
+      cout << u[i*Ncol + j] << " ";
+    }
+    cout << endl;
+  }
+  cout << "}" << endl;
+}
+
 int main( int argc, char **argv )
 {
     int rank, np;
@@ -20,11 +32,6 @@ int main( int argc, char **argv )
     MPI_Comm_size( MPI_COMM_WORLD, &np );
 
     auto inputData = ReadInput( "../../data/parametres.dat" );
-
-    float dX = inputData.Lrow / inputData.rowCount, dY = inputData.Lcol / inputData.colCount;
-    int   imax = inputData.tMax / inputData.dt;
-
-    // setup_procs(); // TODO r�partir les donn�es entre les procs, MPI
 
     int iBegin, iEnd;
     charge( inputData.rowCount,
@@ -39,16 +46,22 @@ int main( int argc, char **argv )
         iBegin = iBegin - 1;
     }
 
+    iEnd++;
     int nbLignes = iEnd - iBegin + 1;
     int nbElts   = nbLignes * inputData.colCount;
 
-    float  a = ( ( 2. / ( dX * dX ) ) + ( 2. / ( dY * dY ) ) ) * inputData.D * inputData.dt;
-    float  b = -1. / ( dX * dX ) * inputData.D * inputData.dt;
-    float  c = -1. / ( dY * dY ) * inputData.D * inputData.dt;
-    Sparse A( nbLignes, inputData.rowCount, a, b, c );
+    float dX = inputData.Lrow / (inputData.rowCount+1), dY = inputData.Lcol / (inputData.colCount+1);
+    int   imax = inputData.tMax / inputData.dt;
+
+    float  a = ( ( 2. / ( dX * dX ) ) + ( 2. / ( dY * dY ) ) ) * inputData.D * inputData.dt + 1;
+    float  b = (-1. / ( dX * dX )) * inputData.D * inputData.dt;
+    float  c = (-1. / ( dY * dY )) * inputData.D * inputData.dt;
+    Sparse A( inputData.colCount, inputData.colCount, a, b, c );
+    std::cout << a << " : " << b << " : " << c << std::endl;
 
     Vector U( nbElts ), Uprev( nbElts );
     Uprev.set_value( 0. );
+    U.set_value(0.);
 
     // g : conditions aux bords en haut et en bas (les vecteurs conceres par MPI !!!!!),
     //   h : """""""""""""""""""" a gauche et a droite
@@ -56,11 +69,12 @@ int main( int argc, char **argv )
     Vector hme( nbLignes * 2 );
     Vector termeSource( nbLignes * inputData.colCount );
 
-    g( rank, inputData.colCount, dX, inputData.Lcol, gme, 1 );
-    h( rank, nbLignes, iBegin, dY, inputData.Lrow, hme, 1 );
-    fsource( rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, termeSource, 1 );
+    g( rank, inputData.colCount, dX, inputData.Lcol, gme, inputData.mode );
+    h( rank, nbLignes, iBegin, dY, inputData.Lrow, hme, inputData.mode );
+    fsource( rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, termeSource, inputData.mode );
 
     Vector F( nbElts );
+    F.set_value( 0. );
     calcul_second_membre( F,
                           nbLignes,
                           inputData.colCount,
@@ -78,40 +92,68 @@ int main( int argc, char **argv )
     // boucle principale
     double *torecv = new double[inputData.colCount];
 
-    // std::cout << F << std::endl;
-
+    Vector _b(0);
+    Vector zero(nbElts);
+    zero.set_value(1.);
     for ( int i = 0; i < imax; ++i ) {
-        //    gradient_conj( A, dt * F + Uprev, Uprev, U, beta, kmax, nbElts ); // Go pdf pour comprendre
-        //    Uprev = U;
-
-      Vector b;
-      b = F;
-      // b.scale( inputData.dt );
-      b += Uprev;
-      double error;
+      _b = F;
+      _b.scale( inputData.dt );
+      _b += Uprev;
+      double error = 0.;
       do {
-	GC_sparse_parallel( A, b, U, Uprev, inputData.kmax, inputData.beta );
-	Uprev = U;
-	int rnext, rprev;
-	if(np == 1)
-	  break;
-	rnext = ( rank + 1 ) % np;
-	rprev = ( rank + np - 1 ) % np;
+        GC_sparse_parallel( A, _b, U, Uprev, inputData.kmax, inputData.beta );
+        
+        Uprev = U;
+        int rnext, rprev;
+        if(np == 1)
+          break;
+        rnext = ( rank + 1 ) % np;
+        rprev = ( rank + np - 1 ) % np;
 
-	// First send previous last row
-	double *tosend = U.data() + ( nbLignes - 2 ) * inputData.colCount;
-	// Everyone send to the next rank and receive from the previous
-	MPI_Sendrecv( tosend, 1, line, rnext, 0, torecv, 1, line, rprev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-	// Except 0, all update gme
-	if ( rank != 0 ) { memcpy( gme.data(), torecv, inputData.colCount * sizeof( double ) ); }
-	// Second row
-	tosend = U.data() + inputData.colCount;
-	MPI_Sendrecv( tosend, 1, line, rprev, 0, torecv, 1, line, rnext, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-	if ( rank != np - 1 ) {
-	  memcpy( gme.data() + inputData.colCount, torecv, inputData.colCount * sizeof( double ) );
-	}
+        // First send previous last row
+        double *tosend = U.data() + ( nbLignes - 2 ) * inputData.colCount;
+        // Everyone send to the next rank and receive from the previous
+        MPI_Sendrecv( tosend, 1, line, rnext, 0, torecv, 1, line, rprev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        // Except 0, all update gme
+        if ( rank != 0 ) { memcpy( gme.data(), torecv, inputData.colCount * sizeof( double ) ); }
+        // Second row
+        tosend = U.data() + inputData.colCount;
+        MPI_Sendrecv( tosend, 1, line, rprev, 0, torecv, 1, line, rnext, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        if ( rank != np - 1 ) {
+          memcpy( gme.data() + inputData.colCount, torecv, inputData.colCount * sizeof( double ) );
+        }
       } while ( error >= inputData.eps );
     }
+    Vector sol(nbElts);
+    solution(rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, sol, inputData.mode);
+
+    Vector checker(nbElts);
+    checker = sol;
+    checker -= U;
+    double diff_rel = checker.nrm2();// sol.nrm2();
+    std::cout << " diff : " << diff_rel << std::endl;
+
+    /*std::cout << "============== Display vector U ==============" << std::endl;
+
+    disp_vector (U, inputData.rowCount);
+
+    F.set_value(1.);
+    F.scale(inputData.dt);
+    U = A*F;
+
+    std::cout << "============== Display vector sol ==============" << std::endl;
+    std::cout << a << " : " << b << " : " << c << std::endl;  
+    /*Sparse B(inputData.rowCount, inputData.colCount, a, b, c);
+    GC_sparse_parallel(B, F, U, zero, inputData.kmax, inputData.beta);    
+    disp_vector (sol, inputData.rowCount);
+
+    std::cout << "============== My checker ==============" << std::endl;
+    GC_sparse_parallel(A, F, U, zero, inputData.kmax, inputData.beta/10);    
+    Vector prod;
+    prod = A*U;
+    prod -= F;
+    double diff_sol = prod.nrm2();
+    std::cout << " real sol : " << diff_sol << std::endl;*/
 
     delete[] torecv;
     MPI_Type_free( &line );

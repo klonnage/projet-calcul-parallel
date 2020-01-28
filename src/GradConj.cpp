@@ -16,26 +16,34 @@ void GC_sparse_parallel(Sparse const& A,
     r1 = b;
     Vector p;
     Vector prod;
-    if (x0.size() != 0)
+    if (x0.size() != 0) {
         prod = A * x0;
-    r1 -= prod;
+        r1 -= prod;
+        x = (x0);
+    } else {
+        x.set_value(1.);
+    }
     
     p = r1;
-    /* Computed here and updated at the end of the loop (avoid twice computing the same thing) */
     beta = r1.dot(r1);
-    for (int k = 0; k < kmax && beta > eps; ++k) {
+    int k;
+    for (k = 0; k < kmax; ++k) {
         double rdotr = r1.dot(r1);
         spmv(1., A, p, 0., prod);
-        std::cout << "spmv : "  << prod << std::endl;
         alpha = rdotr / p.dot(prod);
 
         /* x <- x + alpha * p */
         axpy(alpha, p, x);
-        /* r <- r - alpha * A * p */
         r2 = r1;
+        /* r <- r - alpha * A * p */
         axpy(-alpha, prod, r2);
 
         double rndotrn = r2.dot(r2);
+        beta = sqrt(rndotrn);
+        //std::cout << "beta = " << beta << std::endl;
+        if (beta <= eps) {
+            break;
+        }
         /* gamma <- (rn * rn)/(r * r) */
         gamma = rndotrn / rdotr;
 
@@ -43,7 +51,8 @@ void GC_sparse_parallel(Sparse const& A,
         p.scale(gamma);
         p += r2;
 
-        beta = sqrt(rndotrn);
         r1 = r2;
     }
+    std::cout << "k = " << k << " / " << kmax << std::endl;
+    std::cout << "beta = " << beta << " / " << eps << std::endl;
 }
