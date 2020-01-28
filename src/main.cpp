@@ -9,13 +9,14 @@
 #include <cstring>
 #include <iostream>
 #include <mpi.h>
+#include <algorithm>
 
 #define str( x ) #x
 
 using namespace std;
-static void disp_vector(Vector const& u, int Ncol) {
+static void disp_vector(Vector const& u, int Ncol, int Nlime) {
   cout << "{" << endl;
-  for(int i = 0; i < Ncol; ++i) {
+  for(int i = 0; i < Nlime; ++i) {
     for(int j = 0; j < Ncol; ++j) {
       cout << u[i*Ncol + j] << " ";
     }
@@ -23,6 +24,14 @@ static void disp_vector(Vector const& u, int Ncol) {
   }
   cout << "}" << endl;
 }
+
+static double max_array(double *a, double *b, int size) {
+  double max_diff = fabs(a[0] - b[0]);
+  for(int i = 1; i < size; ++i) {
+    max_diff = max(max_diff, fabs(a[i] - b[i]));
+  }
+  return max_diff;
+} 
 
 int main( int argc, char **argv )
 {
@@ -40,13 +49,13 @@ int main( int argc, char **argv )
             iBegin,
             iEnd ); // retourne l'indice de la ligne de d�but et de celle de fin pour chaque proc
 
-    std::cout << "[ " << rank << " ] " << str( iBegin ) " " << iBegin << " " str( iEnd ) " " << iEnd << std::endl;
 
     if ( rank != 0 ) { // toujours avoir une ligne en commun pour tester schwarz
         iBegin = iBegin - 1;
     }
 
-    iEnd++;
+    std::cout << "[ " << rank << " ] " << str( iBegin ) " " << iBegin << " " str( iEnd ) " " << iEnd << std::endl;
+    //iEnd++;
     int nbLignes = iEnd - iBegin + 1;
     int nbElts   = nbLignes * inputData.colCount;
 
@@ -56,7 +65,7 @@ int main( int argc, char **argv )
     float  a = ( ( 2. / ( dX * dX ) ) + ( 2. / ( dY * dY ) ) ) * inputData.D * inputData.dt + 1;
     float  b = (-1. / ( dX * dX )) * inputData.D * inputData.dt;
     float  c = (-1. / ( dY * dY )) * inputData.D * inputData.dt;
-    Sparse A( inputData.colCount, inputData.colCount, a, b, c );
+    Sparse A( nbLignes, nbLignes, a, b, c );
     std::cout << a << " : " << b << " : " << c << std::endl;
 
     Vector U( nbElts ), Uprev( nbElts );
@@ -81,6 +90,7 @@ int main( int argc, char **argv )
                           dX,
                           dY,
                           inputData.D,
+                          inputData.dt,
                           gme,
                           hme,
                           termeSource ); // secondMembre dans second_memebre_sparse.f90
@@ -95,68 +105,74 @@ int main( int argc, char **argv )
     Vector _b(0);
     Vector zero(nbElts);
     zero.set_value(1.);
+    imax = 1;
     for ( int i = 0; i < imax; ++i ) {
       _b = F;
       _b.scale( inputData.dt );
       _b += Uprev;
-      double error = 0.;
+      double error;
+      double error_all;
+      int j = 0;
       do {
         GC_sparse_parallel( A, _b, U, Uprev, inputData.kmax, inputData.beta );
-        
         Uprev = U;
         int rnext, rprev;
-        if(np == 1)
+        if(np == 2)
           break;
         rnext = ( rank + 1 ) % np;
         rprev = ( rank + np - 1 ) % np;
 
         // First send previous last row
-        double *tosend = U.data() + ( nbLignes - 2 ) * inputData.colCount;
+        double *tosend = U.data() + ( nbLignes - 1 ) * inputData.colCount;
         // Everyone send to the next rank and receive from the previous
         MPI_Sendrecv( tosend, 1, line, rnext, 0, torecv, 1, line, rprev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         // Except 0, all update gme
         if ( rank != 0 ) { memcpy( gme.data(), torecv, inputData.colCount * sizeof( double ) ); }
         // Second row
-        tosend = U.data() + inputData.colCount;
-        MPI_Sendrecv( tosend, 1, line, rprev, 0, torecv, 1, line, rnext, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        tosend = U.data();
+        MPI_Sendrecv( tosend, 1, line, rprev, 1, torecv, 1, line, rnext, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         if ( rank != np - 1 ) {
           memcpy( gme.data() + inputData.colCount, torecv, inputData.colCount * sizeof( double ) );
         }
-      } while ( error >= inputData.eps );
+
+        error = max_array(U.data(), gme.data(), inputData.colCount);
+
+        for (int i = 0; i < inputData.colCount; i++) {
+          cout << U[i] << " ";
+        } cout << endl;
+
+        for (int i = 0; i < inputData.colCount; i++) {
+          cout << gme[i] << " ";
+        } cout << endl;
+
+        MPI_Allreduce(&error, &error_all, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+        cout << rank << " : " << error_all << " : " << i << endl;
+        if(rank != 0) {
+          memcpy(U.data(), gme.data(), inputData.colCount*sizeof(double));
+        }
+        if (rank != np - 1) {
+          memcpy(U.data() + ( nbLignes - 1 ) * inputData.colCount,
+                 gme.data() + inputData.colCount,
+                 inputData.colCount*sizeof(double));
+        }
+        j++;
+      } while ( error_all >= inputData.eps && j < 10);
     }
-    Vector sol(nbElts);
+    /*Vector sol(nbElts);
     solution(rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, sol, inputData.mode);
 
     Vector checker(nbElts);
     checker = sol;
     checker -= U;
     double diff_rel = checker.nrm2();// sol.nrm2();
-    std::cout << " diff : " << diff_rel << std::endl;
-
-    /*std::cout << "============== Display vector U ==============" << std::endl;
-
-    disp_vector (U, inputData.rowCount);
-
-    F.set_value(1.);
-    F.scale(inputData.dt);
-    U = A*F;
-
-    std::cout << "============== Display vector sol ==============" << std::endl;
-    std::cout << a << " : " << b << " : " << c << std::endl;  
-    /*Sparse B(inputData.rowCount, inputData.colCount, a, b, c);
-    GC_sparse_parallel(B, F, U, zero, inputData.kmax, inputData.beta);    
-    disp_vector (sol, inputData.rowCount);
-
-    std::cout << "============== My checker ==============" << std::endl;
-    GC_sparse_parallel(A, F, U, zero, inputData.kmax, inputData.beta/10);    
-    Vector prod;
-    prod = A*U;
-    prod -= F;
-    double diff_sol = prod.nrm2();
-    std::cout << " real sol : " << diff_sol << std::endl;*/
+    std::cout << " diff : " << diff_rel << std::endl;*/
 
     delete[] torecv;
     MPI_Type_free( &line );
+    cout << gme << endl;
+    cout << hme << endl;
+
+    //disp_vector(U, inputData.colCount, nbLignes);
 
     write_vector_to_file( U, inputData.colCount, iBegin, iEnd, dX, dY );
     MPI_Finalize();

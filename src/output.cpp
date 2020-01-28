@@ -56,8 +56,8 @@ void write_vector( const Vector &U,
                    int           precision /*= 6*/ )
 {
     auto oldPrecision = outstream.precision( precision );
-    for ( int row = iBegin; row < iEnd; ++row ) {
-        float x = row * dx;
+    for ( int row = 0; row < iEnd - iBegin + 1; ++row ) {
+        float x = (row + iBegin) * dx;
         for ( int j = 0; j < Ncol; ++j ) {
             float y = j * dy;
             outstream << x << ' ' << y << ' ' << U[row * Ncol + j] << '\n';

@@ -20,7 +20,6 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
         gme.set_value(0.);
         if (me == 0) {
             /* Compute shift in gme plus constant value */
-            double cos_border = 1.;
             for (i = 0; i < Ncol; ++i) {
                 gme[i] = sin((double)(i) * dx) + 1.;
             }
@@ -29,7 +28,7 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
             int shift =  Ncol;
             double cos_border = cos(Ly);
             for (i = 0; i < Ncol; ++i) {
-                gme[shift + i] = sin((double)(i) * dx) + cos_border;
+                gme[Ncol + i] = sin((double)(i) * dx) + cos_border;
             }
         }
         break;
@@ -80,6 +79,17 @@ void solution(int me, int Ncol, int Nlime, int i1, double dx, double dy, double 
                 double x = (double)(i + 1 + i1) * dx;
                 double y = (double)(j + 1) * dy;
                 solutionme[i * Ncol + j] = y*(1 - y)*x*(1 - x);
+            }
+        }
+        break;
+    case 2:
+        for (int i = 0; i < Nlime; ++i)
+        {
+            for (int j = 0; j < Ncol; ++j)
+            {
+                double x = (double)(j + 1 + i1) * dx;
+                double y = (double)(i + 1) * dy;
+                solutionme[j * Ncol + i] = sin(x) + cos(y);
             }
         }
         break;
