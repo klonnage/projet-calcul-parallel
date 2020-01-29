@@ -65,7 +65,7 @@ int main( int argc, char **argv )
     float  a = ( ( 2. / ( dX * dX ) ) + ( 2. / ( dY * dY ) ) ) * inputData.D * inputData.dt + 1;
     float  b = (-1. / ( dX * dX )) * inputData.D * inputData.dt;
     float  c = (-1. / ( dY * dY )) * inputData.D * inputData.dt;
-    Sparse A( nbLignes, nbLignes, a, b, c );
+    Sparse A( inputData.colCount, nbLignes - 1, a, b, c );
     std::cout << a << " : " << b << " : " << c << std::endl;
 
     Vector U( nbElts ), Uprev( nbElts );
@@ -102,10 +102,13 @@ int main( int argc, char **argv )
     // boucle principale
     double *torecv = new double[inputData.colCount];
 
+    //Uprev = F;
+    //Uprev.scale(inputData.dt);
+
     Vector _b(0);
     Vector zero(nbElts);
     zero.set_value(1.);
-    imax = 1;
+    imax = 10;
     for ( int i = 0; i < imax; ++i ) {
       _b = F;
       _b.scale( inputData.dt );
@@ -117,8 +120,9 @@ int main( int argc, char **argv )
         GC_sparse_parallel( A, _b, U, Uprev, inputData.kmax, inputData.beta );
         Uprev = U;
         int rnext, rprev;
-        if(np == 2)
+        if(np == 1 || np == 1) {
           break;
+        }
         rnext = ( rank + 1 ) % np;
         rprev = ( rank + np - 1 ) % np;
 
@@ -129,7 +133,7 @@ int main( int argc, char **argv )
         // Except 0, all update gme
         if ( rank != 0 ) { memcpy( gme.data(), torecv, inputData.colCount * sizeof( double ) ); }
         // Second row
-        tosend = U.data();
+        tosend = U.data() + 0*inputData.colCount;
         MPI_Sendrecv( tosend, 1, line, rprev, 1, torecv, 1, line, rnext, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         if ( rank != np - 1 ) {
           memcpy( gme.data() + inputData.colCount, torecv, inputData.colCount * sizeof( double ) );
@@ -137,13 +141,13 @@ int main( int argc, char **argv )
 
         error = max_array(U.data(), gme.data(), inputData.colCount);
 
-        for (int i = 0; i < inputData.colCount; i++) {
+        /*for (int i = 0; i < inputData.colCount; i++) {
           cout << U[i] << " ";
         } cout << endl;
 
         for (int i = 0; i < inputData.colCount; i++) {
           cout << gme[i] << " ";
-        } cout << endl;
+        } cout << endl;*/
 
         MPI_Allreduce(&error, &error_all, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         cout << rank << " : " << error_all << " : " << i << endl;
@@ -156,7 +160,7 @@ int main( int argc, char **argv )
                  inputData.colCount*sizeof(double));
         }
         j++;
-      } while ( error_all >= inputData.eps && j < 10);
+      } while ( error_all >= inputData.eps && j < 50 );
     }
     /*Vector sol(nbElts);
     solution(rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, sol, inputData.mode);
