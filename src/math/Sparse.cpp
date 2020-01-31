@@ -28,7 +28,7 @@ void spmv(double a, Sparse const& A, Vector& x, double b, Vector& y) {
   /* Scale by sub diagonal of A */
   /*cblas_daxpy(x.size() - 1, a * A.beta, x.data() + 1, 1, y.data(), 1);
   cblas_daxpy(x.size() - 1, a * A.beta, x.data(), 1, y.data() + 1, 1);*/
-  for (int i = 0; i < A.Ny; i++) {
+  for (int i = 0; i <= A.Ny; i++) {
     cblas_daxpy(A.Nx - 1, a * A.beta, x.data() + i*A.Nx, 1, y.data() + i*A.Nx + 1, 1);
     cblas_daxpy(A.Nx - 1, a * A.beta, x.data() + i*A.Nx + 1, 1, y.data() + i*A.Nx, 1);
   }

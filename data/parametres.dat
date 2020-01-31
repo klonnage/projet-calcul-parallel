@@ -1,5 +1,5 @@
-rowCount:20                       #Nli , nombre de noeuds dans la direction x
-colCount:20                       #Ncol , nombre de noeuds dans la direction y
+rowCount:50                       #Nli , nombre de noeuds dans la direction x
+colCount:50                       #Ncol , nombre de noeuds dans la direction y
 Lrow:1.0                      #Lx , longueur dans la direction x
 Lcol:1.0                      #Ly , longueur dans la direction y
 D:1.0                      #D  , coefficient de diffusion

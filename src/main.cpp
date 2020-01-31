@@ -99,24 +99,25 @@ int main( int argc, char **argv )
     MPI_Type_contiguous( inputData.colCount, MPI_DOUBLE, &line );
     MPI_Type_commit( &line );
 
-    // boucle principale
     double *torecv = new double[inputData.colCount];
+    double *comp   = new double[inputData.colCount];
 
     //Uprev = F;
     //Uprev.scale(inputData.dt);
 
     Vector _b(0);
     Vector zero(nbElts);
+    // boucle principale
     zero.set_value(1.);
-    imax = 10;
+    //imax = 1;
     for ( int i = 0; i < imax; ++i ) {
-      _b = F;
-      _b.scale( inputData.dt );
-      _b += Uprev;
       double error;
       double error_all;
       int j = 0;
       do {
+        _b = F;
+        _b.scale( inputData.dt );
+        _b += Uprev;
         GC_sparse_parallel( A, _b, U, Uprev, inputData.kmax, inputData.beta );
         Uprev = U;
         int rnext, rprev;
@@ -127,19 +128,46 @@ int main( int argc, char **argv )
         rprev = ( rank + np - 1 ) % np;
 
         // First send previous last row
-        double *tosend = U.data() + ( nbLignes - 1 ) * inputData.colCount;
-        // Everyone send to the next rank and receive from the previous
+        double *tosend = U.data() + ( nbLignes - 2 ) * inputData.colCount;
+        // Everyone send to the next rank and receive from the previous one
         MPI_Sendrecv( tosend, 1, line, rnext, 0, torecv, 1, line, rprev, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         // Except 0, all update gme
         if ( rank != 0 ) { memcpy( gme.data(), torecv, inputData.colCount * sizeof( double ) ); }
         // Second row
-        tosend = U.data() + 0*inputData.colCount;
+        tosend = U.data() + 1*inputData.colCount;
         MPI_Sendrecv( tosend, 1, line, rprev, 1, torecv, 1, line, rnext, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         if ( rank != np - 1 ) {
           memcpy( gme.data() + inputData.colCount, torecv, inputData.colCount * sizeof( double ) );
         }
 
-        error = max_array(U.data(), gme.data(), inputData.colCount);
+        calcul_second_membre( F,
+                              nbLignes,
+                              inputData.colCount,
+                              dX,
+                              dY,
+                              inputData.D,
+                              inputData.dt,
+                              gme,
+                              hme,
+                              termeSource );
+
+        /*if(rank == 0)
+          disp_vector(F, inputData.colCount, nbLignes);
+        MPI_Barrier(MPI_COMM_WORLD);
+        if (rank == 1)
+          disp_vector(F, inputData.colCount, nbLignes);*/
+
+        /* Error buffer */
+        tosend = U.data() + ( nbLignes - 1 ) * inputData.colCount;
+        MPI_Sendrecv( tosend, 1, line, rnext, 2, comp, 1, line, rprev, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+
+        if(rank != 0) {
+          error = max_array(U.data(), comp, inputData.colCount);
+        } else {
+          error = 0.;
+        }
+
+        //cout << rank << " : " << gme << endl;
 
         /*for (int i = 0; i < inputData.colCount; i++) {
           cout << U[i] << " ";
@@ -151,16 +179,16 @@ int main( int argc, char **argv )
 
         MPI_Allreduce(&error, &error_all, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         cout << rank << " : " << error_all << " : " << i << endl;
-        if(rank != 0) {
+        /*if(rank != 0) {
           memcpy(U.data(), gme.data(), inputData.colCount*sizeof(double));
         }
         if (rank != np - 1) {
           memcpy(U.data() + ( nbLignes - 1 ) * inputData.colCount,
                  gme.data() + inputData.colCount,
                  inputData.colCount*sizeof(double));
-        }
+        }*/
         j++;
-      } while ( error_all >= inputData.eps && j < 50 );
+      } while ( error_all >= inputData.eps && j < 10 );
     }
     /*Vector sol(nbElts);
     solution(rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, sol, inputData.mode);
@@ -172,6 +200,7 @@ int main( int argc, char **argv )
     std::cout << " diff : " << diff_rel << std::endl;*/
 
     delete[] torecv;
+    delete[] comp;
     MPI_Type_free( &line );
     cout << gme << endl;
     cout << hme << endl;

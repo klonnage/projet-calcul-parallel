@@ -53,6 +53,6 @@ void GC_sparse_parallel(Sparse const& A,
 
         r1 = r2;
     }
-    std::cout << k << std::endl;
-    std::cout << beta << std::endl;
+    /*std::cout << k << std::endl;
+    std::cout << beta << std::endl;*/
 }
