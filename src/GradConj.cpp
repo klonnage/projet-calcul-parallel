@@ -40,7 +40,6 @@ void GC_sparse_parallel(Sparse const& A,
 
         double rndotrn = r2.dot(r2);
         beta = sqrt(rndotrn);
-        //std::cout << "beta = " << beta << std::endl;
         if (beta <= eps) {
             break;
         }
@@ -53,6 +52,4 @@ void GC_sparse_parallel(Sparse const& A,
 
         r1 = r2;
     }
-    /*std::cout << k << std::endl;
-    std::cout << beta << std::endl;*/
 }

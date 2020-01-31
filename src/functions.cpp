@@ -25,7 +25,6 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
             }
         }
         if (me == size -1) {
-            int shift =  Ncol;
             double cos_border = cos(Ly);
             for (i = 0; i < Ncol; ++i) {
                 gme[Ncol + i] = sin((double)(i) * dx) + cos_border;
@@ -40,7 +39,6 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
     }
 }
 
-// Fixme : change ligne major h et g
 void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
     int i;
     double y;
@@ -63,37 +61,6 @@ void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
     case 3:
         hme.set_value(1.);
         break;
-    default:
-        break;
-    }
-}
-
-void solution(int me, int Ncol, int Nlime, int i1, double dx, double dy, double Lx, double Ly, double t, Vector& solutionme, int mode) {
-    switch (mode)
-    {
-    case 1:
-        for (int i = 0; i < Nlime; ++i)
-        {
-            for (int j = 0; j < Ncol; ++j)
-            {
-                double x = (double)(i + 1 + i1) * dx;
-                double y = (double)(j + 1) * dy;
-                solutionme[i * Ncol + j] = y*(1 - y)*x*(1 - x);
-            }
-        }
-        break;
-    case 2:
-        for (int i = 0; i < Nlime; ++i)
-        {
-            for (int j = 0; j < Ncol; ++j)
-            {
-                double x = (double)(j + 1 + i1) * dx;
-                double y = (double)(i + 1) * dy;
-                solutionme[j * Ncol + i] = sin(x) + cos(y);
-            }
-        }
-        break;
-    
     default:
         break;
     }
@@ -145,12 +112,6 @@ void charge( int rowCount, int np, int rank /* aka "me" */, int &iBegin, int &iE
 {
     int loadSize = rowCount / np;
     int leftover = rowCount % np;
-
-    // if (rank == 0 && np == 1) {
-    //     iBegin = rank * loadSize;
-    //     iEnd   = iBegin + loadSize;
-    //     return;
-    // }
 
     if ( leftover == 0  ) {
         iBegin = rank * loadSize;

@@ -26,22 +26,14 @@ void spmv(double a, Sparse const& A, Vector& x, double b, Vector& y) {
   cblas_daxpy(x.size(), a * A.alpha, x.data(), 1, y.data(), 1);
 
   /* Scale by sub diagonal of A */
-  /*cblas_daxpy(x.size() - 1, a * A.beta, x.data() + 1, 1, y.data(), 1);
-  cblas_daxpy(x.size() - 1, a * A.beta, x.data(), 1, y.data() + 1, 1);*/
   for (int i = 0; i <= A.Ny; i++) {
     cblas_daxpy(A.Nx - 1, a * A.beta, x.data() + i*A.Nx, 1, y.data() + i*A.Nx + 1, 1);
     cblas_daxpy(A.Nx - 1, a * A.beta, x.data() + i*A.Nx + 1, 1, y.data() + i*A.Nx, 1);
   }
   
-
   /* Scale by gamma */
   if (x.size() - A.Nx >= 1) {
     cblas_daxpy(x.size() - A.Nx, a * A.gamma, x.data() + A.Nx, 1, y.data(), 1);
     cblas_daxpy(x.size() - A.Nx, a * A.gamma, x.data(), 1, y.data() + A.Nx, 1);
   }
-  /*for (int i = 0; i < A.Ny - 1; i++)
-  {
-    cblas_daxpy(A.Ny - 2, a * A.gamma, x.data() + A.Ny + 1 + A.Ny*i, 1, y.data() + A.Ny*i, 1);
-    cblas_daxpy(A.Ny - 2, a * A.gamma, x.data(), 1, y.data() + A.Ny, 1);
-  }*/
 }
