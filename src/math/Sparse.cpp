@@ -21,7 +21,7 @@ Vector Sparse::operator*(Vector const& v) const{
 
 void spmv(double a, Sparse const& A, Vector& x, double b, Vector& y) {
   y.scale(b);
-
+#if 1
   /* Scale by the main diag of A */
   cblas_daxpy(x.size(), a * A.alpha, x.data(), 1, y.data(), 1);
 
@@ -36,4 +36,24 @@ void spmv(double a, Sparse const& A, Vector& x, double b, Vector& y) {
     cblas_daxpy(x.size() - A.Nx, a * A.gamma, x.data() + A.Nx, 1, y.data(), 1);
     cblas_daxpy(x.size() - A.Nx, a * A.gamma, x.data(), 1, y.data() + A.Nx, 1);
   }
+#else
+  int i;
+  /*** Data Locality version ***/
+  for (i = 0; i <= A.Ny; i++) {
+
+    /* Scale by the main diag of A */
+    cblas_daxpy(A.Nx, a * A.alpha, x.data() + i*A.Nx, 1, y.data() + i*A.Nx, 1);
+
+    /* Scale by sub diagonal of A */
+    cblas_daxpy(A.Nx - 1, a * A.beta, x.data() + i*A.Nx, 1, y.data() + i*A.Nx + 1, 1);
+    cblas_daxpy(A.Nx - 1, a * A.beta, x.data() + i*A.Nx + 1, 1, y.data() + i*A.Nx, 1);
+
+    /* Scale by gamma */
+    if (x.size() - A.Nx >= 1 && i != A.Ny) {
+      cblas_daxpy(A.Nx, a * A.gamma, x.data() + A.Nx + i*A.Nx, 1, y.data() + i*A.Nx, 1);
+      cblas_daxpy(A.Nx, a * A.gamma, x.data() + i*A.Nx, 1, y.data() + A.Nx + i*A.Nx, 1);
+    }
+  }
+  
+#endif
 }

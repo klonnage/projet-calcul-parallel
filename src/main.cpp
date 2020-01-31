@@ -67,11 +67,11 @@ int main( int argc, char **argv )
 
     g( rank, inputData.colCount, dX, inputData.Lcol, gme, inputData.mode );
     h( rank, nbLignes, iBegin, dY, inputData.Lrow, hme, inputData.mode );
-    fsource( rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, termeSource, inputData.mode );
+    //fsource( rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, 0, termeSource, inputData.mode );
 
     Vector F( nbElts );
     F.set_value( 0. );
-    calcul_second_membre( F,
+/*    calcul_second_membre( F,
                           nbLignes,
                           inputData.colCount,
                           dX,
@@ -80,7 +80,7 @@ int main( int argc, char **argv )
                           inputData.dt,
                           gme,
                           hme,
-                          termeSource ); // secondMembre dans second_memebre_sparse.f90
+                          termeSource ); // secondMembre dans second_memebre_sparse.f90*/
 
     MPI_Datatype line;
     MPI_Type_contiguous( inputData.colCount, MPI_DOUBLE, &line );
@@ -91,10 +91,24 @@ int main( int argc, char **argv )
 
     Vector _b(0);
     // boucle principale
+    
     double btime = MPI_Wtime();
     for ( int i = 0; i < imax; ++i ) {
       double error;
       double error_all;
+
+      fsource( rank, inputData.colCount, nbLignes, iBegin, dX, dY, inputData.Lrow, inputData.Lcol, i*inputData.dt, termeSource, inputData.mode );
+      calcul_second_membre( F,
+                            nbLignes,
+                            inputData.colCount,
+                            dX,
+                            dY,
+                            inputData.D,
+                            inputData.dt,
+                            gme,
+                            hme,
+                            termeSource );
+
       do {
         _b = F;
         _b.scale( inputData.dt );

@@ -21,13 +21,13 @@ void g(int me, int Ncol, double dx, double Ly, Vector& gme, int mode) {
         if (me == 0) {
             /* Compute shift in gme plus constant value */
             for (i = 0; i < Ncol; ++i) {
-                gme[i] = sin((double)(i) * dx) + 1.;
+                gme[i] = cos((double)(i) * dx);
             }
         }
         if (me == size -1) {
-            double cos_border = cos(Ly);
+            double cos_border = sin(Ly);
             for (i = 0; i < Ncol; ++i) {
-                gme[Ncol + i] = sin((double)(i) * dx) + cos_border;
+                gme[Ncol + i] = cos((double)(i) * dx) + cos_border;
             }
         }
         break;
@@ -50,12 +50,12 @@ void h(int me, int Nlime, int i1, double dy, double Lx, Vector& hme, int mode) {
         break;
     case 2:
         for (i = 0; i < Nlime; ++i) {
-            y = (double)(i - i1)*dy;
-            hme[Nlime + i] = cos(y) + sin(Lx);
+            y = (double)(i + i1)*dy;
+            hme[Nlime + i] = sin(y) + cos(Lx);
         }
         for (i = 0; i < Nlime; ++i) {
-            y = (double)(i - i1)*dy;
-            hme[i]         = cos(y);
+            y = (double)(i + i1)*dy;
+            hme[i]         = sin(y) + 1.;
         }
         break;
     case 3:
